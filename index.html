@@ -1,0 +1,964 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Key Account Health Dashboard</title>
+<meta name="description" content="A free, private tool for key account managers. See which accounts need you today, why, and what to do. Export Excel (Power BI ready) and PowerPoint in one click. Your data never leaves your browser.">
+<style>
+:root{
+  --bg:#f4f6f9;--panel:#fff;--panel2:#eef2f6;--text:#16202c;--muted:#5d6a79;--line:#dde3ea;
+  --brand:#0b6b57;--brandSoft:#e2f2ec;
+  --good:#1f8a4c;--goodSoft:#e1f3e8;--warn:#b7791f;--warnSoft:#fbf0db;--bad:#c0392b;--badSoft:#fbe4e1;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 2px 6px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141a;--panel:#171e26;--panel2:#1e2731;--text:#e6edf3;--muted:#9aa8b6;--line:#2b3644;
+  --brand:#2bb594;--brandSoft:#13392f;--good:#3ccf7a;--goodSoft:#133323;--warn:#e8b04b;--warnSoft:#3a2e14;--bad:#ff6b5b;--badSoft:#3d1a16;--shadow:none}}
+:root[data-theme="dark"]{
+  --bg:#0f141a;--panel:#171e26;--panel2:#1e2731;--text:#e6edf3;--muted:#9aa8b6;--line:#2b3644;
+  --brand:#2bb594;--brandSoft:#13392f;--good:#3ccf7a;--goodSoft:#133323;--warn:#e8b04b;--warnSoft:#3a2e14;--bad:#ff6b5b;--badSoft:#3d1a16;--shadow:none}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Tahoma,system-ui,sans-serif;font-size:15px;line-height:1.55}
+a{color:var(--brand)}
+button{font:inherit;cursor:pointer}
+header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:1.12rem;cursor:pointer}
+.logo i{width:30px;height:30px;border-radius:8px;background:var(--brand);color:#fff;display:grid;place-items:center;font-style:normal}
+.by{font-size:.84rem;color:var(--muted)}
+.by a{font-weight:600;text-decoration:none}
+.sp{flex:1}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:9px;padding:8px 13px;font-size:.88rem}
+.btn:hover{border-color:var(--brand)}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.btn.sm{padding:4px 10px;font-size:.8rem}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.danger{color:var(--bad)}
+.privacy{background:var(--brandSoft);padding:8px 20px;font-size:.85rem;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+main{max-width:1100px;margin:0 auto;padding:22px 20px 40px}
+h1{font-size:1.45rem;margin:0}
+h2{font-size:1.05rem;margin:0 0 10px}
+.sub{color:var(--muted);margin:2px 0 18px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);min-width:0}
+.kpi .l{font-size:.8rem;color:var(--muted)}
+.kpi .v{font-size:1.45rem;font-weight:700}
+.acc{cursor:pointer;border-inline-start:6px solid var(--muted);transition:transform .1s}
+.acc:hover{transform:translateY(-2px)}
+.acc.good{border-inline-start-color:var(--good)}.acc.warn{border-inline-start-color:var(--warn)}.acc.bad{border-inline-start-color:var(--bad)}
+.acc .nm{font-weight:700;font-size:1.02rem}
+.acc .meta{font-size:.82rem;color:var(--muted)}
+.acc .why{font-size:.86rem;margin-top:8px}
+.score{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:50%;font-weight:700;border:3px solid;flex:0 0 auto}
+.big{width:92px;height:92px;font-size:1.8rem;border-width:6px}
+.s-good{border-color:var(--good);color:var(--good)}.s-warn{border-color:var(--warn);color:var(--warn)}.s-bad{border-color:var(--bad);color:var(--bad)}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.78rem;font-weight:600}
+.p-good{background:var(--goodSoft);color:var(--good)}.p-warn{background:var(--warnSoft);color:var(--warn)}.p-bad{background:var(--badSoft);color:var(--bad)}.p-mut{background:var(--panel2);color:var(--muted)}
+.today{background:var(--badSoft);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:16px}
+.today b{color:var(--bad)}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.list li:last-child{border-bottom:0}
+.ic{flex:0 0 22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:.8rem;font-weight:700}
+.ic.good{background:var(--goodSoft);color:var(--good)}.ic.bad{background:var(--badSoft);color:var(--bad)}.ic.warn{background:var(--warnSoft);color:var(--warn)}.ic.info{background:var(--brandSoft);color:var(--brand)}
+.bar{height:9px;border-radius:9px;background:var(--panel2);overflow:hidden}
+.bar>span{display:block;height:100%;border-radius:9px}
+.fac{display:grid;grid-template-columns:130px 1fr 34px;gap:10px;align-items:center;font-size:.86rem;margin:7px 0}
+.msg{background:var(--panel2);border-radius:10px;padding:12px;white-space:pre-wrap;font-size:.92rem}
+.action{background:var(--brandSoft);border-radius:10px;padding:12px 14px;font-weight:600}
+.tm{display:flex;gap:16px;align-items:center}
+textarea,input,select{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:8px 10px;width:100%}
+textarea{min-height:140px;resize:vertical}
+label.f{display:block;font-size:.8rem;color:var(--muted);margin:10px 0 4px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.q{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{border:0;background:var(--panel);color:var(--text);padding:5px 11px;font-size:.82rem}
+.seg button.on{background:var(--brand);color:#fff}
+details{margin-top:12px}summary{cursor:pointer;color:var(--muted);font-size:.86rem}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;justify-content:center;align-items:flex-start;padding:28px 12px;overflow:auto;z-index:60}
+.modal.on{display:flex}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:620px;width:100%;padding:20px}
+.person{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:.88rem}
+.dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+.empty{text-align:center;color:var(--muted);padding:34px}
+.muted{color:var(--muted)}.small{font-size:.82rem}
+footer{text-align:center;color:var(--muted);font-size:.83rem;padding:18px;border-top:1px solid var(--line)}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:9px 16px;border-radius:10px;font-size:.88rem;display:none;z-index:80}
+@media (max-width:820px){
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3,.g2,.f2{grid-template-columns:1fr}
+  main{padding:16px}header,.privacy{padding-left:16px;padding-right:16px}
+  .fac{grid-template-columns:105px 1fr 30px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo" id="home"><i>&#9673;</i><span data-t="app">Key Account Health Dashboard</span></div>
+  <div class="by"><span data-t="by">Built by</span> <a href="https://www.linkedin.com/in/saadalhumaid/" target="_blank" rel="noopener">Saad Alhumaid</a></div>
+  <div class="sp"></div>
+  <button class="btn pri" id="exportBtn">&#8681; <span data-t="export">Export for presentation</span></button>
+  <button class="btn" id="howBtn" data-t="how">How it works</button>
+  <button class="btn" id="langBtn">العربية</button>
+  <button class="btn" id="themeBtn" aria-label="Theme">&#9680;</button>
+</header>
+<div class="privacy">&#128274; <b data-t="privT">Private.</b> <span data-t="privX">Your accounts are saved only in this browser on this device. Nothing is uploaded or shared.</span><span class="sp"></span>
+  <button class="btn sm" id="backupBtn" data-t="backup">Backup</button>
+  <label class="btn sm" style="margin:0"><span data-t="restore">Restore</span><input type="file" id="restoreFile" accept=".json" hidden></label>
+  <button class="btn sm" id="demoBtn" data-t="demo">Demo data</button>
+  <button class="btn sm danger" id="clearBtn" data-t="clear">Clear all</button>
+</div>
+<main id="view"></main>
+<footer><span data-t="by">Built by</span> <a href="https://www.linkedin.com/in/saadalhumaid/" target="_blank" rel="noopener">Saad Alhumaid</a>, Key Account Manager · <span data-t="foot">Free to use. Your data never leaves your browser.</span></footer>
+<div class="modal" id="modal"><div class="box" id="box"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= TEXT ================= */
+const TX={
+en:{app:"Key Account Health Dashboard",by:"Built by",export:"Export for presentation",how:"How it works",privT:"Private.",privX:"Your accounts are saved only in this browser on this device. Nothing is uploaded or shared.",backup:"Backup",restore:"Restore",demo:"Demo data",clear:"Clear all",foot:"Free to use. Your data never leaves your browser.",
+homeT:"My accounts",homeS:"Which account needs follow-up, why it needs it, and my suggestion for you.",add:"+ Add account",fEmail:"Contact email (optional)",schBtn:"Schedule",schT:"Schedule a follow-up",schS:"Suggested from the account situation and the expert council. You can change anything.",schType:"Type",schCall:"Call",schMeet:"Meeting",schDate:"Date",schTime:"Time",schDur:"Duration (minutes)",schTitle:"Title",schCal:"Add to my calendar",schCalS:"Downloads a calendar file that opens in your phone or computer calendar.",schMail:"Send an invitation to the client (optional)",schMailS:"Choose your email type. Works with any email address. Internal notes are never included.",schSaved:"Appointment saved.",invWork:"Outlook (work email)",invLive:"Outlook.com / Hotmail",invOther:"Other email app",invHelp:"A new meeting opens in your calendar with the time, the client and the invite text. Press Save or Send: it is saved in your calendar and the client receives the invitation (Gmail will ask whether to send the invitation: choose Send).",invNoEmail:"No client email saved. Add it in the meeting window, or save it in the account details.",schCalHelp:"The calendar file was downloaded. If your calendar did not open by itself, open the file from your Downloads (on iPhone: the Files app) and choose Add.",schMailHelp:"If your email app did not open, copy the invite below and paste it into a new email.",schTo:"To",schSubj:"Subject",nextAppt:"Next appointment",schAgenda:"Agenda",schPrep:"Preparation notes (only for you)",schAsk:"Questions to ask",schAdvice:"Expert advice",schMsg:"Ready message",health:"Health",axX:"Your position (account health)",axY:"Account attractiveness (value and growth)",matrixT:"Portfolio map",matrixS:"Malcolm McDonald's key account matrix: where to invest your time. Bubble size = annual value. Click a bubble to open the account.",quadT:"Portfolio position",spinT:"Questions to ask (SPIN)",spinS:"From Neil Rackham's SPIN Selling. S = situation, P = problem, I = implication, N = need-payoff.",councilT:"Expert council",councilS:"What leading sales and relationship thinkers would advise for this account. Principles are summarized in our own words.",medT:"Is the deal ready?",medS:"Optional: answer if this account has an open deal or renewal.",readiness:"Readiness",mNo:"No",mPart:"Somewhat",mYes:"Yes",medReady:"Ready to close",medGap:"Some gaps",medEarly:"Too early",medHow:"Each Yes adds to readiness, Somewhat adds half. Tap an answer again to clear it. Based on MEDDPICC.",noSave:"This preview can't save changes. Open the file in your browser (Edge or Chrome) to keep your data.",imp:"Import from Excel",tpl:"Excel template",search:"Search accounts…",fAll:"All",fNeed:"Need follow-up",showMore:"Show more",full:"Browser storage is full. Export a backup and remove old conversations.",limit:"You reached the limit of 500 accounts.",extra:"More information",
+impT:"Import accounts from Excel",impS:"Upload an Excel (.xlsx) or CSV file. Each row is one account. The file is read inside your browser only.",impFile:"Choose file",impSheet:"Sheet",impMap:"Match your columns",impMapS:"We matched the columns we recognized. Check them, then import. Columns set to 'More information' are kept and shown on the account page and in exports.",impCol:"Your column",impField:"Goes to",impEx:"Example",fIgnore:"Ignore",fExtra:"More information",impGo:"Import",impDone:"{n} new accounts added, {u} updated.",impSkip:"{s} rows skipped (limit of 500 accounts).",impNoName:"Choose which column is the account name.",impBad:"Could not read this file. Save it as .xlsx or .csv and try again.",impEmpty:"No rows found in this sheet.",impRows:"{n} rows found",impMerge:"Accounts with the same name are updated, not duplicated.",
+needToday:"Accounts that need you today",allGood:"All accounts look healthy today.",
+kAcc:"Accounts",kVal:"Portfolio value",kRisk:"Value at risk",kHealth:"Average health",
+healthy:"Healthy",watch:"Watch",atRisk:"At risk",
+renewIn:"Renewal in",days:"days",daysAgo:"days ago",ago:"{d} ago",noContact:"No contact for",
+back:"← My accounts",edit:"Edit",del:"Delete",save:"Save",cancel:"Cancel",
+where:"Where it stands",why:"Why",todo:"My suggestion",msgReady:"Ready message",copy:"Copy",copied:"Copied",
+tm:"If nobody touches this account for 90 days",today:"Today",in90:"In 90 days",
+factors:"Health breakdown",fEng:"Contact",fRel:"Relationship",fConv:"Conversation",fSla:"Service (SLA)",fPay:"Payments",fGrowth:"Growth",
+people:"People at the client",addP:"+ Add person",pName:"Name",pTitle:"Title",pRole:"Role",pLast:"Last contact",pSent:"Attitude",
+rDM:"Decision maker",rSup:"Supporter",rInf:"Influencer",rUser:"User",rBlock:"Blocker",
+sPos:"Supportive",sNeu:"Neutral",sNeg:"Negative",quiet:"gone quiet",
+conv:"Latest conversation",convHint:"Paste a WhatsApp chat, an email thread or your meeting notes. It is analyzed inside your browser only.",upload:"Upload WhatsApp export (.txt)",analyze:"Update from conversation",whoYou:"Which one is you?",noConv:"No conversation added yet.",
+fName:"Account name",fContact:"Main contact name",fSector:"Sector",fValue:"Annual value (SAR)",fRenew:"Renewal date",fLast:"Last real contact",
+q1:"Are you in direct touch with the decision maker?",q2:"Is there someone inside the client who supports you?",q3:"Is the client satisfied with the service?",yes:"Yes",no:"No",unsure:"Not sure",
+more:"More details (optional)",fSla:"SLA compliance %",fPay:"Average days to pay",fGrowth:"Growth vs last year %",
+needName:"Please enter the account name.",confirmDel:"Delete this account?",confirmClear:"Delete all accounts saved in this browser?",
+exportT:"Export for presentation",exportS:"Downloads two files: an Excel workbook (clean tables, ready for Power BI) and a PowerPoint deck you can present right away.",yourName:"Your name (shown on the report)",download:"Download Excel + PowerPoint",exported:"Files downloaded. Check your Downloads folder.",nothing:"Add at least one account first.",
+pbi:"Power BI: open Power BI Desktop → Get data → Excel → select the tables (tbl...).",
+howT:"How Key Account Health Dashboard works",
+restored:"Backup restored.",badFile:"That file is not a Key Account Health Dashboard backup.",demoLoaded:"Demo data loaded (fictional companies).",empty:"No accounts yet.",
+r_quiet:"No contact for {d}",r_contact:"Regular contact (last one {d} ago)",r_renew:"Renewal in {d}",r_dmNo:"Not in direct touch with the decision maker",r_dmYes:"Decision maker engaged",r_supNo:"No supporter inside the client",r_supYes:"Has a supporter inside",r_satNo:"Client not satisfied with the service",r_slaLow:"SLA below target ({v}%)",r_payLate:"Late payments ({v})",r_growthDown:"Revenue down {v}% vs last year",r_growthUp:"Revenue up {v}% vs last year",
+st_good:"Healthy. Keep the rhythm and look for growth.",st_warn:"Needs attention before it slips.",st_bad:"At risk. Act this week.",
+a_renew:"Book a renewal review meeting",a_quiet:"Re-engage the client this week",a_dm:"Get access to the decision maker",a_sat:"Fix the service issues and agree a plan",a_value:"Bring the talk back to value",a_close:"Confirm the next steps in writing",a_grow:"Propose a growth idea",
+m_renew:"Hi {c},\nOur contract renews on {date}. Before then, I'd like us to look honestly at what worked this year and what didn't.\nWhat would need to be true for you to feel the next year is a clear win for your team?\nWould {day} work for 30 minutes?",
+m_quiet:"Hi {c},\nIt seems this hasn't been a priority lately, which I fully understand.\nWould it be a bad idea to spend 15 minutes this week on one change I'm seeing across similar teams, and what it could mean for yours?",
+m_dm:"Hi {c},\nThank you for the support so far. Decisions like this usually need your management to see the impact clearly.\nHow would you suggest we bring the results in front of them, and would you be open to joining that meeting?",
+m_sat:"Hi {c},\nYou probably feel we haven't delivered what you expected, and you're right to raise it.\nWhat would we need to fix first for you to feel confident in us again? I'd like to agree on a plan with clear dates this week.",
+m_value:"Hi {c},\nIt sounds like budget is a real constraint right now.\nBefore we discuss price, can I show you what the current issue is costing your team each month? Teams like yours are often surprised by the number.\nWould a one-page summary help?",
+m_close:"Hi {c},\nTo keep things moving, here is what I understood we agreed: the start date, the team who will follow up with you, and the next document from our side.\nIs there anything that would stop us from moving ahead this week?",
+m_grow:"Hi {c},\nThings are running well, so I've been looking at where your team could get more value next quarter, and I found one idea worth testing.\nHow open would you be to a 20-minute walkthrough?",
+sig_impl:"Asking about implementation and start date",sig_follow:"Asking who will follow up after signing",sig_terms:"Discussing payment terms or warranty",sig_revised:"Asked for a revised version for management",sig_contract:"Talking about the contract and signing",
+sig_later:"Pushing it to later",sig_budget:"Budget or price concern",sig_comp:"Comparing you with competitors",sig_vague:"Vague answers",
+sig_slow:"Client replies are getting slower",sig_fast:"Client replies are getting faster",sig_unans:"{n} follow-ups from you without a reply",sig_late:"New people joined the conversation",
+x_title:"Account portfolio review",x_by:"Prepared by",x_made:"Made with Key Account Health Dashboard | linkedin.com/in/saadalhumaid",x_summary:"Portfolio at a glance",x_health:"Account health",x_risk:"Accounts that need action",x_plan:"Next 30 days",x_account:"Account",x_status:"Status",x_action:"Action",x_reason:"Main reason"
+},
+ar:{app:"Key Account Health Dashboard",by:"تصميم",export:"تصدير للعرض",how:"طريقة العمل",privT:"خصوصية تامة.",privX:"حساباتك محفوظة في هذا المتصفح على جهازك فقط، ولا يُرفع منها شيء ولا تُشارك مع أحد.",backup:"نسخة احتياطية",restore:"استرجاع",demo:"بيانات تجريبية",clear:"مسح الكل",foot:"مجانية، وبياناتك لا تغادر متصفحك.",
+homeT:"حساباتي",homeS:"ما الحساب الذي يحتاج إلى متابعة، ولماذا، وما اقتراحي لك.",add:"+ إضافة حساب",fEmail:"البريد الإلكتروني لجهة التواصل (اختياري)",schBtn:"تحديد موعد",schT:"تحديد موعد متابعة",schS:"اقتراح مبني على حالة الحساب ونصائح مجلس الخبراء، ويمكنك تعديل أي شيء.",schType:"النوع",schCall:"مكالمة",schMeet:"اجتماع",schDate:"التاريخ",schTime:"الوقت",schDur:"المدة (بالدقائق)",schTitle:"العنوان",schCal:"إضافة إلى تقويمي",schCalS:"يُنزَّل ملف تقويم يُفتح في تقويم جوالك أو حاسوبك.",schMail:"إرسال دعوة إلى العميل (اختياري)",schMailS:"اختر نوع بريدك. تعمل مع أي عنوان بريد، ولا تتضمن أي ملاحظات داخلية.",schSaved:"تم حفظ الموعد.",invWork:"Outlook (بريد العمل)",invLive:"Outlook.com أو Hotmail",invOther:"تطبيق بريد آخر",invHelp:"يُفتح اجتماع جديد في تقويمك بالوقت والعميل ونص الدعوة. اضغط «حفظ» أو «إرسال» ليُحفظ في تقويمك وتصل الدعوة إلى العميل (في Gmail سيسألك: هل ترسل الدعوة؟ اختر «إرسال»).",invNoEmail:"لا يوجد بريد إلكتروني محفوظ للعميل. أضفه في نافذة الاجتماع، أو احفظه في بيانات الحساب.",schCalHelp:"تم تنزيل ملف الموعد. إذا لم يُفتح التقويم تلقائيًا، فافتح الملف من مجلد التنزيلات (في الآيفون: تطبيق الملفات) ثم اختر «إضافة».",schMailHelp:"إذا لم يُفتح تطبيق البريد، فانسخ الدعوة أدناه والصقها في رسالة جديدة.",schTo:"إلى",schSubj:"الموضوع",nextAppt:"الموعد القادم",schAgenda:"جدول الأعمال",schPrep:"ملاحظات التحضير (لك فقط)",schAsk:"أسئلة مقترحة",schAdvice:"نصيحة الخبير",schMsg:"الرسالة الجاهزة",health:"الصحة",axX:"قوة موقعك (صحة الحساب)",axY:"جاذبية الحساب (القيمة والنمو)",matrixT:"خريطة المحفظة",matrixS:"مصفوفة Malcolm McDonald للحسابات الرئيسية: أين تستثمر وقتك. حجم الدائرة يمثل القيمة السنوية. اضغط على الدائرة لفتح الحساب.",quadT:"موقعه في المحفظة",spinT:"أسئلة مقترحة (SPIN)",spinS:"من كتاب SPIN Selling لنيل راكهام: S الوضع، P المشكلة، I الأثر، N قيمة الحل.",councilT:"مجلس الخبراء",councilS:"ما ينصح به أشهر خبراء المبيعات والعلاقات لهذا الحساب. المبادئ ملخصة بأسلوبنا.",medT:"هل الصفقة جاهزة؟",medS:"اختياري: أجب إذا كان لدى الحساب صفقة أو تجديد قائم.",readiness:"الجاهزية",mNo:"لا",mPart:"إلى حد ما",mYes:"نعم",medReady:"جاهزة للإقفال",medGap:"تنقصها بعض النقاط",medEarly:"ما زال الوقت مبكرًا",medHow:"كل «نعم» ترفع الجاهزية، و«إلى حد ما» ترفعها بالنصف. اضغط على الإجابة مرة أخرى لمسحها. مبنية على MEDDPICC.",noSave:"هذه المعاينة لا تحفظ التغييرات. افتح الملف في متصفحك (Edge أو Chrome) لحفظ بياناتك.",imp:"استيراد من Excel",tpl:"قالب Excel",search:"ابحث في الحسابات…",fAll:"الكل",fNeed:"تحتاج إلى متابعة",showMore:"عرض المزيد",full:"امتلأت مساحة التخزين في المتصفح. صدّر نسخة احتياطية واحذف المحادثات القديمة.",limit:"بلغت الحد الأعلى: ٥٠٠ حساب.",extra:"معلومات إضافية",
+impT:"استيراد الحسابات من Excel",impS:"ارفع ملف Excel (.xlsx) أو CSV، وكل صف فيه يمثل حسابًا. يُقرأ الملف داخل متصفحك فقط.",impFile:"اختر الملف",impSheet:"الورقة",impMap:"مطابقة الأعمدة",impMapS:"طابقنا الأعمدة التي تعرفنا عليها. راجعها ثم ابدأ الاستيراد. الأعمدة المحددة بـ«معلومات إضافية» تُحفظ وتظهر في صفحة الحساب وفي التصدير.",impCol:"العمود في ملفك",impField:"يُضاف إلى",impEx:"مثال",fIgnore:"تجاهل",fExtra:"معلومات إضافية",impGo:"استيراد",impDone:"حسابات جديدة: {n}، وحسابات محدثة: {u}.",impSkip:"صفوف لم تُستورد: {s} (الحد ٥٠٠ حساب).",impNoName:"اختر العمود الذي يحتوي على اسم الحساب.",impBad:"تعذرت قراءة الملف. احفظه بصيغة .xlsx أو .csv ثم حاول مرة أخرى.",impEmpty:"لا توجد صفوف في هذه الورقة.",impRows:"عدد الصفوف: {n}",impMerge:"الحسابات التي تحمل الاسم نفسه تُحدَّث ولا تتكرر.",
+needToday:"حسابات تحتاج إليك اليوم",allGood:"جميع الحسابات في وضع جيد اليوم.",
+kAcc:"الحسابات",kVal:"قيمة المحفظة",kRisk:"القيمة المعرضة للخطر",kHealth:"متوسط الصحة",
+healthy:"جيد",watch:"يحتاج إلى انتباه",atRisk:"في خطر",
+renewIn:"التجديد بعد",days:"يوم",daysAgo:"يوم",ago:"منذ {d}",noContact:"لا تواصل منذ",
+back:"→ حساباتي",edit:"تعديل",del:"حذف",save:"حفظ",cancel:"إلغاء",
+where:"الوضع الحالي",why:"الأسباب",todo:"اقتراحي لك",msgReady:"رسالة جاهزة",copy:"نسخ",copied:"تم النسخ",
+tm:"إذا لم يتواصل أحد مع هذا الحساب ٩٠ يومًا",today:"اليوم",in90:"بعد ٩٠ يومًا",
+factors:"تفاصيل الصحة",fEng:"التواصل",fRel:"العلاقة",fConv:"المحادثة",fSla:"الخدمة (SLA)",fPay:"السداد",fGrowth:"النمو",
+people:"الأشخاص لدى العميل",addP:"+ إضافة شخص",pName:"الاسم",pTitle:"المسمى الوظيفي",pRole:"الدور",pLast:"آخر تواصل",pSent:"موقفه",
+rDM:"صاحب القرار",rSup:"داعم",rInf:"مؤثر",rUser:"مستخدم",rBlock:"معارض",
+sPos:"داعم",sNeu:"محايد",sNeg:"سلبي",quiet:"انقطع التواصل",
+conv:"آخر محادثة",convHint:"الصق محادثة واتساب أو رسائل بريد إلكتروني أو ملاحظات اجتماع. يجري التحليل داخل متصفحك فقط.",upload:"ارفع ملف تصدير واتساب (.txt)",analyze:"تحديث من المحادثة",whoYou:"من أنت من بين المشاركين؟",noConv:"لا توجد محادثة مضافة.",
+fName:"اسم الحساب",fContact:"اسم جهة التواصل",fSector:"القطاع",fValue:"القيمة السنوية (ريال)",fRenew:"تاريخ التجديد",fLast:"آخر تواصل فعلي",
+q1:"هل أنت على تواصل مباشر مع صاحب القرار؟",q2:"هل لديك داعم داخل جهة العميل؟",q3:"هل العميل راضٍ عن الخدمة؟",yes:"نعم",no:"لا",unsure:"غير متأكد",
+more:"تفاصيل إضافية (اختياري)",fSla:"نسبة الالتزام بـ SLA",fPay:"متوسط أيام السداد",fGrowth:"النمو مقارنة بالعام الماضي ٪",
+needName:"اكتب اسم الحساب.",confirmDel:"هل تريد حذف هذا الحساب؟",confirmClear:"هل تريد مسح جميع الحسابات المحفوظة في هذا المتصفح؟",
+exportT:"تصدير للعرض",exportS:"يُنزَّل ملفان: Excel بجداول مرتبة وجاهزة لـ Power BI، وعرض PowerPoint جاهز للتقديم.",yourName:"اسمك (يظهر في التقرير)",download:"تنزيل Excel و PowerPoint",exported:"تم تنزيل الملفين. تجدهما في مجلد التنزيلات.",nothing:"أضف حسابًا واحدًا على الأقل.",
+pbi:"Power BI: افتح Power BI Desktop ← Get data ← Excel ← اختر الجداول (tbl...).",
+howT:"طريقة عمل الأداة",
+restored:"تم استرجاع النسخة.",badFile:"هذا الملف ليس نسخة احتياطية من Key Account Health Dashboard.",demoLoaded:"تم تحميل البيانات.",empty:"لا توجد حسابات.",
+r_quiet:"لا تواصل منذ {d}",r_contact:"تواصل منتظم (آخره منذ {d})",r_renew:"التجديد بعد {d}",r_dmNo:"لا تواصل مباشر مع صاحب القرار",r_dmYes:"صاحب القرار متفاعل",r_supNo:"لا يوجد داعم داخل جهة العميل",r_supYes:"يوجد داعم داخل جهة العميل",r_satNo:"العميل غير راضٍ عن الخدمة",r_slaLow:"الالتزام بـ SLA أقل من المستهدف ({v}٪)",r_payLate:"تأخر في السداد ({v})",r_growthDown:"انخفض الإيراد {v}٪ عن العام الماضي",r_growthUp:"ارتفع الإيراد {v}٪ عن العام الماضي",
+st_good:"وضعه جيد. حافظ على وتيرة التواصل وابحث عن فرص للنمو.",st_warn:"يحتاج إلى انتباه قبل أن يتراجع.",st_bad:"في خطر. تحرك هذا الأسبوع.",
+a_renew:"احجز اجتماع مراجعة قبل التجديد",a_quiet:"أعد التواصل مع العميل هذا الأسبوع",a_dm:"تواصل مع صاحب القرار",a_sat:"عالج مشكلات الخدمة واتفق على خطة",a_value:"أعد الحديث إلى القيمة لا السعر",a_close:"وثّق الخطوات التالية كتابيًا",a_grow:"اقترح فكرة للنمو",
+m_renew:"مرحبًا {c}،\nيتجدد عقدنا في {date}، وقبل ذلك أود أن نراجع بصراحة ما نجح هذا العام وما لم ينجح.\nما الذي يلزم لتشعر أن العام القادم مكسب واضح لفريقكم؟\nهل يناسبك {day} لاجتماع مدته ٣٠ دقيقة؟",
+m_quiet:"مرحبًا {c}،\nيبدو أن الموضوع ليس من أولوياتكم في هذه الفترة، وأتفهم ذلك.\nهل تمانع أن نخصص ١٥ دقيقة هذا الأسبوع أعرض فيها تغييرًا لاحظته لدى فرق مشابهة لفريقكم، وما قد يعنيه لكم؟",
+m_dm:"مرحبًا {c}،\nأشكرك على دعمك. القرارات بهذا الحجم تحتاج عادة إلى أن ترى الإدارة الأثر بوضوح.\nكيف تقترح أن نعرض النتائج عليهم؟ وهل تود حضور الاجتماع معنا؟",
+m_sat:"مرحبًا {c}،\nأدرك أننا لم نقدم ما كنت تتوقعه، ومن حقك أن تقول ذلك.\nما أول أمر يجب أن نعالجه لتستعيد ثقتك بنا؟ وأود أن نتفق هذا الأسبوع على خطة بمواعيد واضحة.",
+m_value:"مرحبًا {c}،\nيبدو أن الميزانية تمثل ضغطًا عليكم في هذه الفترة.\nقبل الحديث عن السعر، هل تسمح لي أن أعرض عليك تكلفة المشكلة الحالية شهريًا؟ كثير من الفرق تتفاجأ بالرقم.\nهل يفيدك ملخص في صفحة واحدة؟",
+m_close:"مرحبًا {c}،\nلنمضي قدمًا، هذا ما فهمت أننا اتفقنا عليه: موعد البدء، والفريق الذي سيتابع معكم، والمستند التالي من جانبنا.\nهل هناك ما قد يمنعنا من البدء هذا الأسبوع؟",
+m_grow:"مرحبًا {c}،\nالأمور تسير بشكل جيد، لذلك بحثت عن مجالات يستفيد منها فريقكم أكثر في الربع القادم، ووجدت فكرة تستحق التجربة.\nما رأيك أن نخصص ٢٠ دقيقة لأشرحها لك؟",
+sig_impl:"يسأل عن التنفيذ وموعد البدء",sig_follow:"يسأل عمن سيتابع معهم بعد التوقيع",sig_terms:"يناقش شروط الدفع أو الضمان",sig_revised:"طلب نسخة معدلة لعرضها على الإدارة",sig_contract:"انتقل الحديث إلى العقد والتوقيع",
+sig_later:"يؤجل القرار",sig_budget:"لديه تحفظ على السعر أو الميزانية",sig_comp:"يقارنك بمنافسين",sig_vague:"ردود عامة وغير واضحة",
+sig_slow:"أصبحت ردود العميل أبطأ",sig_fast:"أصبحت ردود العميل أسرع",sig_unans:"متابعات منك بلا رد: {n}",sig_late:"انضم أشخاص جدد إلى المحادثة",
+x_title:"مراجعة محفظة الحسابات",x_by:"إعداد",x_made:"أُعدّ باستخدام Key Account Health Dashboard | linkedin.com/in/saadalhumaid",x_summary:"المحفظة في لمحة",x_health:"صحة الحسابات",x_risk:"حسابات تحتاج إلى تحرك",x_plan:"خطة ٣٠ يومًا",x_account:"الحساب",x_status:"الوضع",x_action:"الخطوة",x_reason:"السبب الرئيسي"
+}};
+let LANG='en';
+const t=(k,v)=>{let s=(TX[LANG][k]!=null?TX[LANG][k]:TX.en[k])||k;if(v)for(const x in v)s=s.split('{'+x+'}').join(v[x]);return s};
+const AR=()=>LANG==='ar';
+
+/* ================= DATA ================= */
+const KEY='accountPulse.v2';
+let DB={accounts:[],prefs:{}};
+function load(){try{const s=localStorage.getItem(KEY);if(s){const d=JSON.parse(s);if(d&&Array.isArray(d.accounts))DB=d}}catch(e){}DB.prefs=DB.prefs||{}}
+const MAXACC=500;
+let SAVEWARNED=false;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));return true}catch(e){
+  const full=e&&(e.name==='QuotaExceededError'||e.code===22||e.code===1014);
+  if(!SAVEWARNED){SAVEWARNED=true;try{toast(t(full?'full':'noSave'))}catch(x){}}
+  return false}}
+const uid=()=>Math.random().toString(36).slice(2,10);
+const DAY=86400000;
+const today0=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
+const iso=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
+const offs=n=>iso(new Date(today0().getTime()+n*DAY));
+const pd=s=>s?new Date(s+'T00:00:00'):null;
+const since=s=>s?Math.round((today0()-pd(s))/DAY):null;
+const until=s=>s?Math.round((pd(s)-today0())/DAY):null;
+const clamp=(x,a=0,b=100)=>Math.max(a,Math.min(b,x));
+const lin=(x,a,b)=>clamp((x-a)/(b-a)*100);
+const num=v=>v===''||v==null||isNaN(Number(v))?null:Number(v);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const loc=()=>AR()?'ar-SA':'en-US';
+/* Day counts with correct Arabic number agreement: يوم واحد، يومان، ٣-١٠ أيام، ١١-٩٩ يومًا */
+function DN(n){n=Math.round(Number(n));if(isNaN(n))return '-';const a=Math.abs(n);
+  if(!AR())return a===1?'1 day':a+' days';
+  if(a===0)return 'اليوم';if(a===1)return 'يوم واحد';if(a===2)return 'يومين';
+  const r=a%100;if(r>=3&&r<=10)return a+' أيام';if(r>=11&&r<=99)return a+' يومًا';return a+' يوم';}
+const money=n=>{n=Number(n)||0;const a=Math.abs(n);if(a>=1e6)return (n/1e6).toLocaleString(loc(),{maximumFractionDigits:1})+(AR()?' مليون':'M');if(a>=1e3)return (n/1e3).toLocaleString(loc(),{maximumFractionDigits:0})+(AR()?' ألف':'K');return n.toLocaleString(loc())};
+const fdate=s=>s?pd(s).toLocaleDateString(AR()?'ar-SA-u-ca-gregory':'en-GB',{day:'numeric',month:'short',year:'numeric'}):'-';
+const band=s=>s>=70?'good':s>=50?'warn':'bad';
+const statusTxt=s=>s>=70?t('healthy'):s>=50?t('watch'):t('atRisk');
+const scoreEl=(s,big)=>`<span class="score s-${band(s)} ${big?'big':''}">${Math.round(s)}</span>`;
+
+/* ================= CONVERSATION ENGINE ================= */
+const AD={'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
+function parseConv(raw){
+  const text=String(raw||'').replace(/\r/g,'').replace(/[‎‏‪-‮]/g,'').replace(/[٠-٩]/g,c=>AD[c]);
+  const reWA=/^\[?(\d{1,4})[\/.\-](\d{1,2})[\/.\-](\d{1,4})[,،]?\s+(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp]\.?[Mm]\.?|ص|م)?\]?\s*(?:[-–]\s*)?([^:]{1,60}?):\s?(.*)$/;
+  const reNamed=/^([A-Za-z؀-ۿ][^:]{0,40}):\s(.+)$/;
+  const msgs=[];let mode=null;
+  for(const ln of text.split('\n')){
+    const m=ln.match(reWA);
+    if(m){let a=+m[1],b=+m[2],c=+m[3],y,mo,d;const us=/^[ap]/i.test(m[6]||'');
+      if(a>31){y=a;mo=b;d=c}else{y=c<100?2000+c:c;if(a>12){d=a;mo=b}else if(b>12){mo=a;d=b}else if(us){mo=a;d=b}else{d=a;mo=b}}
+      let hh=+m[4];const ap=(m[6]||'').toLowerCase();if((ap.startsWith('p')||ap==='م')&&hh<12)hh+=12;if((ap.startsWith('a')||ap==='ص')&&hh===12)hh=0;
+      msgs.push({who:m[7].trim(),t:new Date(y,mo-1,d,hh,+m[5]).getTime(),txt:m[8]||''});mode='wa';continue}
+    if(mode!=='wa'){const n=ln.match(reNamed);if(n&&!/^(https?|from|to|cc|subject|date|sent)$/i.test(n[1].trim())){msgs.push({who:n[1].trim(),t:null,txt:n[2]});mode='named';continue}}
+    if(msgs.length&&ln.trim())msgs[msgs.length-1].txt+='\n'+ln;else if(!msgs.length&&ln.trim()){msgs.push({who:'?',t:null,txt:ln});mode='blob'}
+  }
+  return msgs.filter(m=>!/<Media omitted>|تم استبعاد الوسائط|This message was deleted/i.test(m.txt));
+}
+const SIG=[
+ {k:'impl',p:1,w:2,re:/\b(when can (you|we) start|start date|kick-?off|onboarding|go[- ]?live|implementation|timeline|roll-?out)\b|متى (نبدأ|تبدون|تبدأون|تقدرون)|التنفيذ|التركيب|التشغيل|الجدول الزمني|موعد البدء/i},
+ {k:'follow',p:1,w:1,re:/\bwho (will|is going to) (follow|support|manage)\b|مين (بيتابع|يتابع|المسؤول)|من سيتابع/i},
+ {k:'terms',p:1,w:2,re:/\b(payment terms|warranty|guarantee|invoice|purchase order|PO)\b|شروط الدفع|الدفعات|الضمان|فاتورة|أمر شراء|مدة السداد/i},
+ {k:'revised',p:1,w:2,re:/\b(revised|updated|final) (version|proposal|offer|quote)\b|for (management|board) approval|management asked|نسخة (معدلة|محدثة|نهائية)|عرض (معدل|محدث)|اعتماد الإدارة|الإدارة طلبت/i},
+ {k:'contract',p:1,w:2,re:/\b(contract|agreement|signing|sign it|draft)\b|العقد|الاتفاقية|التوقيع|نوقع|مسودة/i},
+ {k:'later',p:-1,w:2,re:/\b(next (quarter|year)|not now|later|on hold|postpone|revisit)\b|مو الحين|بعدين|نأجل|تأجيل|الربع الجاي|السنة الجاية|نرجع لك|معلق/i},
+ {k:'budget',p:-1,w:2,re:/\b(budget|too expensive|expensive|cost is high|cheaper|price is high)\b|الميزانية|غالي|السعر عالي|أرخص|التكلفة عالية/i},
+ {k:'comp',p:-1,w:2,re:/\b(competitor|other (vendor|supplier|offer)s?|another (vendor|supplier|company)|comparing)\b|منافس|عرض ثاني|شركة ثانية|عروض ثانية|نقارن/i},
+ {k:'vague',p:-1,w:1,re:/\b(we will see|let me check|i'?ll get back|we'?ll get back|maybe)\b|نشوف|بشوف|بنرجع لك|إن شاء الله نشوف/i}
+];
+function analyzeConv(raw,me){
+  const msgs=parseConv(raw);if(!msgs.length)return null;
+  const parts=[...new Set(msgs.map(m=>m.who))];
+  if(!me||!parts.includes(me))me=parts.find(p=>/^(me|you|أنا)$/i.test(p))||parts[0];
+  const all=msgs.map(m=>m.txt).join('\n');
+  const sigs=SIG.filter(s=>s.re.test(all)).map(s=>({k:s.k,p:s.p,w:s.w}));
+  const timed=msgs.filter(m=>m.t);
+  const rts=[];for(let i=1;i<timed.length;i++)if(timed[i].who!==me&&timed[i-1].who===me)rts.push(timed[i].t-timed[i-1].t);
+  let trend=0;if(rts.length>=4){const h=Math.floor(rts.length/2),a=rts.slice(0,h).reduce((s,x)=>s+x,0)/h,b=rts.slice(h).reduce((s,x)=>s+x,0)/(rts.length-h);if(b<a*.7)trend=1;else if(b>a*1.4)trend=-1}
+  const lastClient=[...timed].reverse().find(m=>m.who!==me);
+  let unans=0;for(let i=msgs.length-1;i>=0&&msgs[i].who===me;i--)unans++;
+  const first={};msgs.forEach((m,i)=>{if(!(m.who in first))first[m.who]=i});
+  const late=Object.keys(first).some(w=>w!==me&&msgs.length>=5&&first[w]>msgs.length*.4);
+  let score=50;sigs.forEach(s=>score+=s.p>0?s.w*5:-s.w*6);score+=trend*8;score-=Math.max(0,unans-1)*7;if(late)score+=4;
+  return {score:Math.round(clamp(score)),sigs:sigs.map(s=>s.k),trend,unans,late,lastClientDate:lastClient?iso(lastClient.t):null,count:msgs.length,me,parts};
+}
+
+/* ================= HEALTH ================= */
+const qv=v=>v==='yes'?100:v==='no'?0:35;
+function lastTouch(a){const d=[a.lastContact,a.conv&&a.conv.lastClientDate].filter(Boolean).sort();return d.length?d[d.length-1]:null}
+function factors(a,shift=0){
+  const f={};const lt=lastTouch(a);
+  f.eng=lt?100-lin(since(lt)+shift,7,60):40;
+  f.rel=Math.round(qv(a.q1)*.4+qv(a.q2)*.35+qv(a.q3)*.25);
+  if(a.conv)f.conv=shift?Math.round(a.conv.score*.6):a.conv.score;
+  if(num(a.sla)!=null)f.sla=lin(num(a.sla),80,100);
+  if(num(a.payDays)!=null)f.pay=100-lin(num(a.payDays),30,90);
+  if(num(a.growth)!=null)f.growth=lin(num(a.growth)-(shift?5:0),-20,20);
+  return f;
+}
+const WT={eng:.3,rel:.3,conv:.2,sla:.08,pay:.06,growth:.06};
+function health(a,shift=0){const f=factors(a,shift);let s=0,w=0;for(const k in f){s+=f[k]*WT[k];w+=WT[k]}return Math.round(w?s/w:0)}
+function renewRisk(a){const d=until(a.renewal),h=health(a);if(d!=null&&d<=120&&h<60)return'high';if((d!=null&&d<=120&&h<75)||h<50)return'medium';return'low'}
+function reasons(a){
+  const out=[];const lt=lastTouch(a);const ds=lt?since(lt):null;const du=until(a.renewal);
+  if(ds!=null&&ds>21)out.push({k:'bad',w:9+ds/10,txt:t('r_quiet',{d:DN(ds)})});
+  if(du!=null&&du>=0&&du<=120)out.push({k:health(a)>=70?'warn':'bad',w:8+(120-du)/20,txt:t('r_renew',{d:DN(du)})});
+  if(a.q3==='no')out.push({k:'bad',w:9,txt:t('r_satNo')});
+  if(a.q1==='no')out.push({k:'bad',w:8,txt:t('r_dmNo')});
+  if(a.q2==='no')out.push({k:'warn',w:6,txt:t('r_supNo')});
+  if(a.conv){a.conv.sigs.forEach(k=>{const s=SIG.find(x=>x.k===k);out.push({k:s.p>0?'good':'bad',w:s.p>0?5:7,txt:t('sig_'+k)})});
+    if(a.conv.trend<0)out.push({k:'bad',w:7,txt:t('sig_slow')});if(a.conv.trend>0)out.push({k:'good',w:4,txt:t('sig_fast')});
+    if(a.conv.unans>=2)out.push({k:'bad',w:8,txt:t('sig_unans',{n:a.conv.unans})});if(a.conv.late)out.push({k:'good',w:3,txt:t('sig_late')})}
+  if(num(a.sla)!=null&&num(a.sla)<95)out.push({k:'warn',w:6,txt:t('r_slaLow',{v:num(a.sla)})});
+  if(num(a.payDays)!=null&&num(a.payDays)>60)out.push({k:'warn',w:5,txt:t('r_payLate',{v:DN(num(a.payDays))})});
+  if(num(a.growth)!=null&&num(a.growth)<0)out.push({k:'warn',w:5,txt:t('r_growthDown',{v:Math.abs(num(a.growth))})});
+  if(num(a.growth)!=null&&num(a.growth)>=10)out.push({k:'good',w:3,txt:t('r_growthUp',{v:num(a.growth)})});
+  if(a.q1==='yes')out.push({k:'good',w:3,txt:t('r_dmYes')});
+  if(a.q2==='yes')out.push({k:'good',w:2.5,txt:t('r_supYes')});
+  if(ds!=null&&ds<=14)out.push({k:'good',w:2,txt:t('r_contact',{d:DN(ds)})});
+  return out.sort((x,y)=>y.w-x.w);
+}
+function nextAction(a){
+  const h=health(a),du=until(a.renewal),lt=lastTouch(a),ds=lt?since(lt):99,sig=(a.conv&&a.conv.sigs)||[];
+  let k='grow';
+  if(du!=null&&du>=0&&du<=120&&h<75)k='renew';
+  else if(ds>21||(a.conv&&a.conv.unans>=2))k='quiet';
+  else if(a.q3==='no')k='sat';
+  else if(sig.includes('budget')||sig.includes('comp'))k='value';
+  else if(a.q1==='no')k='dm';
+  else if(sig.filter(s=>['impl','terms','revised','contract','follow'].includes(s)).length>=2)k='close';
+  else if(du!=null&&du>=0&&du<=120)k='renew';
+  const c=(a.contact||'').trim();
+  const nd=new Date();nd.setDate(nd.getDate()+((7-nd.getDay())%7||7));
+  const day=nd.toLocaleDateString(AR()?'ar-SA-u-ca-gregory':'en-GB',{weekday:'long',day:'numeric',month:'short'});
+  return {k,title:t('a_'+k),msg:t('m_'+k,{c,date:fdate(a.renewal),day}).replace('مرحبًا ،','مرحبًا،').replace('Hi ,','Hi,')};
+}
+/* ================= SCHEDULING (calendar file + optional email invite) ================= */
+const SCH={renew:['meet',30],quiet:['call',15],dm:['meet',30],sat:['meet',45],value:['meet',30],close:['call',20],grow:['meet',20]};
+const TOPIC={en:{renew:'reviewing this year\'s results and planning the renewal',quiet:'your priorities for the coming quarter',dm:'presenting the results to your management',sat:'reviewing the open issues and agreeing on a plan',value:'the value we deliver and the cost of the current issue',close:'confirming the next steps',grow:'opportunities to add more value'},
+ ar:{renew:'مراجعة نتائج العام والتخطيط للتجديد',quiet:'أولوياتكم في الربع القادم',dm:'عرض النتائج على إدارتكم',sat:'مراجعة الملاحظات القائمة والاتفاق على خطة',value:'القيمة التي نقدمها وتكلفة المشكلة الحالية',close:'تأكيد الخطوات التالية',grow:'فرص تحقيق قيمة أكبر'}};
+function workdaysAhead(n){const d=today0();let c=0;while(c<n){d.setDate(d.getDate()+1);const w=d.getDay();if(w!==5&&w!==6)c++}return d}
+function suggestSlot(a){const k=nextAction(a).k,s=SCH[k]||SCH.grow,h=health(a);const d=workdaysAhead(h<50?2:h<70?5:10);return {k,type:s[0],dur:s[1],date:iso(d),time:'10:00'}}
+const typeName=ty=>t(ty==='call'?'schCall':'schMeet');
+function apptDate(ev){return new Date(ev.date+'T'+(ev.time||'10:00')+':00')}
+function apptLabel(ev){const d=apptDate(ev);return d.toLocaleDateString(AR()?'ar-SA-u-ca-gregory':'en-GB',{weekday:'long',day:'numeric',month:'long'})+' · '+(ev.time||'10:00')}
+function icsEsc(s){return String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n')}
+function icsFold(line){const enc=new TextEncoder();const out=[];let cur='',bytes=0;for(const ch of line){const b=enc.encode(ch).length;if(bytes+b>73){out.push(cur);cur=' '+ch;bytes=1+b}else{cur+=ch;bytes+=b}}out.push(cur);return out.join('\r\n')}
+const icsUTC=d=>d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+function prepNotes(a,ev){const na=nextAction(a),c=council(a)[0];return [t('schAgenda')+': '+TOPIC[LANG][ev.k||na.k],t('todo')+': '+na.title,'',t('schAsk')+':',...spinQs(a).map(q=>'- '+q.q),'',t('schAdvice')+': '+c.e.n+': '+c.adv,'',t('schMsg')+':',na.msg].join('\n')}
+function buildICS(a,ev){
+  const st=apptDate(ev),en=new Date(st.getTime()+ev.dur*60000);
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Key Account Health Dashboard//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT',
+   'UID:'+uid()+uid()+'@key-account-health','DTSTAMP:'+icsUTC(new Date()),'DTSTART:'+icsUTC(st),'DTEND:'+icsUTC(en),
+   'SUMMARY:'+icsEsc(ev.title),'DESCRIPTION:'+icsEsc(prepNotes(a,ev)),'CATEGORIES:'+icsEsc(a.name),
+   'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsEsc(ev.title),'TRIGGER:-PT15M','END:VALARM','END:VEVENT','END:VCALENDAR'];
+  return new TextEncoder().encode(L.map(icsFold).join('\r\n')+'\r\n');
+}
+function inviteMail(a,ev){
+  const c=(a.contact||'').trim(),owner=DB.prefs.owner||'',d=apptLabel(ev).split(' · ')[0],topic=TOPIC[LANG][ev.k||nextAction(a).k];
+  const subj=AR()?(ev.type==='call'?'دعوة لمكالمة':'دعوة لاجتماع')+': '+topic:(ev.type==='call'?'Call':'Meeting')+' invitation: '+topic;
+  const body=AR()?`مرحبًا${c?' '+c:''}،\n\nأقترح ${ev.type==='call'?'إجراء مكالمة':'عقد اجتماع'} يوم ${d} الساعة ${ev.time} لمدة ${ev.dur} دقيقة، لمناقشة ${topic}.\n\nهل يناسبك هذا الموعد؟ وإن لم يناسبك، فأرجو اقتراح وقت آخر.\n\nمع التحية${owner?'،\n'+owner:''}`
+    :`Hi${c?' '+c:''},\n\nI'd like to suggest a ${ev.type==='call'?'call':'meeting'} on ${d} at ${ev.time} for ${ev.dur} minutes, to discuss ${topic}.\n\nDoes this time work for you? If not, please suggest another time.\n\nBest regards${owner?',\n'+owner:''}`;
+  return {to:(a.email||'').trim(),subj,body};
+}
+/* Invite links for any email provider. Only the client-facing invite text is sent, never internal notes. */
+function pad2(n){return String(n).padStart(2,'0')}
+function localISO(d){const o=-d.getTimezoneOffset(),s=o>=0?'+':'-',oa=Math.abs(o);return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+'T'+pad2(d.getHours())+':'+pad2(d.getMinutes())+':00'+s+pad2(Math.floor(oa/60))+':'+pad2(oa%60)}
+function inviteLinks(a,ev){
+  const inv=inviteMail(a,ev),st=apptDate(ev),en=new Date(st.getTime()+ev.dur*60000),E=encodeURIComponent;
+  const ms=base=>base+'?path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&subject='+E(ev.title)+'&body='+E(inv.body)+'&startdt='+E(localISO(st))+'&enddt='+E(localISO(en))+(inv.to?'&to='+E(inv.to):'');
+  return {inv,
+    work:ms('https://outlook.office.com/calendar/deeplink/compose'),
+    live:ms('https://outlook.live.com/calendar/0/deeplink/compose'),
+    gmail:'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+E(ev.title)+'&dates='+icsUTC(st)+'/'+icsUTC(en)+'&details='+E(inv.body)+(inv.to?'&add='+E(inv.to):''),
+    mail:'mailto:'+E(inv.to)+'?subject='+E(inv.subj)};
+}
+function schedForm(a){
+  const s=a.next&&a.next.date&&apptDate(a.next)>=today0()?Object.assign({},a.next):Object.assign(suggestSlot(a),{});
+  s.title=s.title||(typeName(s.type)+': '+a.name);
+  const I=(id,l,v,ty='text',ex='')=>`<div><label class="f" for="${id}">${l}</label><input id="${id}" type="${ty}" value="${esc(v)}" ${ex}></div>`;
+  modal(`<h2>${t('schT')}</h2><p class="small muted">${t('schS')}</p>
+  <div class="action" style="margin-bottom:6px">→ ${esc(nextAction(a).title)}</div>
+  <div class="f2"><div><label class="f" for="sType">${t('schType')}</label><select id="sType"><option value="call" ${s.type==='call'?'selected':''}>${t('schCall')}</option><option value="meet" ${s.type==='meet'?'selected':''}>${t('schMeet')}</option></select></div>
+  <div><label class="f" for="sDur">${t('schDur')}</label><select id="sDur">${[15,20,30,45,60].map(m=>`<option ${m===Number(s.dur)?'selected':''}>${m}</option>`).join('')}</select></div>
+  ${I('sDate',t('schDate'),s.date,'date')}${I('sTime',t('schTime'),s.time,'time','step="900"')}</div>
+  ${I('sTitle',t('schTitle'),s.title)}
+  <div style="margin-top:16px;display:grid;gap:10px">
+    <div><button class="btn pri" id="sCal" style="width:100%">📅 ${t('schCal')}</button><div class="small muted" style="margin-top:4px">${t('schCalS')}</div></div>
+    <div id="sMailBox"><div style="font-weight:600;margin-bottom:6px">✉ ${t('schMail')}</div><div class="small muted" style="margin-bottom:8px">${t('schMailS')}</div>
+      <div class="grid g2" style="gap:8px"><button class="btn" data-inv="work">${t('invWork')}</button><button class="btn" data-inv="live">${t('invLive')}</button><button class="btn" data-inv="gmail">Gmail</button><button class="btn" data-inv="mail">${t('invOther')}</button></div></div>
+  </div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-m="close">${t('cancel')}</button></div>`);
+  document.querySelector('[data-m=close]').onclick=closeM;
+  const read=()=>{const ev={k:s.k||nextAction(a).k,type:gv('sType'),dur:Number(gv('sDur')),date:gv('sDate'),time:gv('sTime')||'10:00',title:gv('sTitle').trim()||(typeName(gv('sType'))+': '+a.name)};a.next=ev;save();return ev};
+  document.getElementById('sType').onchange=()=>{const ti=document.getElementById('sTitle');if(/^(مكالمة|اجتماع|Call|Meeting): /.test(ti.value))ti.value=typeName(gv('sType'))+': '+a.name};
+  const info=(html)=>{let b=document.getElementById('sInfo');if(!b){b=document.createElement('div');b.id='sInfo';b.style.cssText='margin-top:14px;background:var(--panel2);border-radius:10px;padding:12px';document.getElementById('sMailBox').parentElement.after(b)}b.innerHTML=html;b.scrollIntoView({block:'nearest'})};
+  document.getElementById('sCal').onclick=()=>{const ev=read();dl(buildICS(a,ev),(AR()?'موعد-':'appointment-')+a.name.replace(/[\\/:*?"<>|]+/g,'').slice(0,40)+'.ics','text/calendar');toast(t('schSaved'));info(`<div class="small">${t('schCalHelp')}</div>`)};
+  document.querySelectorAll('[data-inv]').forEach(btn=>btn.onclick=()=>{const ev=read();const L=inviteLinks(a,ev),kind=btn.dataset.inv,inv=L.inv;
+    try{const ln=document.createElement('a');ln.href=L[kind];ln.target='_blank';ln.rel='noopener';document.body.appendChild(ln);ln.click();ln.remove()}catch(e){}
+    toast(t('schSaved'));
+    info(`<div class="small" style="margin-bottom:8px">${t(kind==='mail'?'schMailHelp':'invHelp')}</div>${inv.to?`<div class="small"><b>${t('schTo')}:</b> ${esc(inv.to)}</div>`:`<div class="small" style="color:var(--warn)">${t('invNoEmail')}</div>`}<div class="small"><b>${t('schSubj')}:</b> ${esc(inv.subj)}</div><div class="msg" style="margin-top:8px">${esc(inv.body)}</div><button class="btn sm" id="sCopy" style="margin-top:8px">${t('copy')}</button>`);
+    document.getElementById('sCopy').onclick=()=>{const txt=inv.subj+'\n\n'+inv.body;const done=()=>document.getElementById('sCopy').textContent=t('copied');if(navigator.clipboard)navigator.clipboard.writeText(txt).then(done,()=>{fallbackCopy(txt);done()});else{fallbackCopy(txt);done()}}});
+}
+function needsToday(a){const h=health(a),du=until(a.renewal),lt=lastTouch(a),ds=lt?since(lt):99;return h<50||(du!=null&&du>=0&&du<=90&&h<70)||ds>21}
+
+/* ================= KNOWLEDGE ENGINE: experts and frameworks turned into rules ================= */
+let QCACHE=null;
+function valuePct(v){
+  if(!QCACHE){const vals=DB.accounts.map(a=>Number(a.value)||0).sort((x,y)=>x-y);QCACHE={vals}}
+  const vals=QCACHE.vals,n=vals.length;if(n<2)return 60;let lo=0,eq=0;for(const x of vals){if(x<v)lo++;else if(x===v)eq++}return (lo+eq/2)/n*100;
+}
+function attractiveness(a){const vp=valuePct(Number(a.value)||0);const g=num(a.growth);return Math.round(g==null?vp:vp*.7+lin(g,-20,20)*.3)}
+function quadrant(a){const at=attractiveness(a),po=health(a);return at>=50?(po>=50?'strategic':'star'):(po>=50?'status':'streamline')}
+const QD={
+ strategic:{c:'good',en:['Strategic','Invest and co-create: a joint account plan and quarterly reviews with their management.'],ar:['استراتيجي','استثمر فيه وابنِ شراكة: خطة حساب مشتركة ومراجعة ربع سنوية مع إدارته.']},
+ star:{c:'bad',en:['Star','High value, weak position: put your best effort here to reach the decision maker and rebuild trust.'],ar:['واعد','قيمته عالية وموقعك فيه ضعيف: ركّز جهدك هنا للوصول إلى صاحب القرار واستعادة الثقة.']},
+ status:{c:'warn',en:['Status','Strong position, lower value: keep service steady with efficient effort and watch for growth.'],ar:['حافظ عليه','موقعك فيه قوي وقيمته أقل: حافظ على مستوى الخدمة بجهد أقل، وراقب فرص النمو.']},
+ streamline:{c:'mut',en:['Streamline','Lower value, weak position: simplify the service and do not over-invest your time.'],ar:['بسّطه','قيمته أقل وموقعك فيه ضعيف: بسّط الخدمة ولا تستنزف وقتك فيه.']}
+};
+const qName=k=>QD[k][LANG][0],qAdv=k=>QD[k][LANG][1];
+const EXP={
+ carnegie:{n:'Dale Carnegie',b:'How to Win Friends and Influence People',en:'People engage when the talk is about their interests, not yours.',ar:'يتفاعل الناس حين يدور الحديث حول اهتماماتهم لا اهتماماتك.'},
+ voss:{n:'Chris Voss',b:'Never Split the Difference',en:'Name the feeling out loud, then ask open "how" and "what" questions.',ar:'سمِّ الشعور بوضوح، ثم اطرح أسئلة مفتوحة تبدأ بـ«كيف» و«ما».'},
+ challenger:{n:'Matthew Dixon & Brent Adamson',b:'The Challenger Sale',en:'Teach the client something new about their business, then lead the conversation.',ar:'قدّم للعميل معلومة جديدة عن أعماله، ثم قُد الحوار.'},
+ rackham:{n:'Neil Rackham',b:'SPIN Selling',en:'Large deals move on implication and need-payoff questions, not on closing tricks.',ar:'تتقدم الصفقات الكبيرة بأسئلة الأثر وقيمة الحل، لا بحيل الإقفال.'},
+ mcdonald:{n:'Malcolm McDonald',b:'Key Account Management',en:'Invest in each account according to its attractiveness and your position in it.',ar:'استثمر في كل حساب بحسب جاذبيته وقوة موقعك فيه.'},
+ heiman:{n:'Robert Miller & Stephen Heiman',b:'Strategic Selling',en:'Cover every buying influence, above all the economic buyer.',ar:'غطِّ جميع المؤثرين في قرار الشراء، وأهمهم صاحب القرار المالي.'},
+ meddic:{n:'Dick Dunkel & Jack Napoli',b:'MEDDIC',en:'A deal is only as strong as its weakest qualification point.',ar:'قوة الصفقة تساوي قوة أضعف نقطة فيها.'},
+ tracy:{n:'Brian Tracy',b:'The Psychology of Selling',en:'Ask clearly for the next commitment, with a date.',ar:'اطلب الالتزام التالي بوضوح وبموعد محدد.'}
+};
+const RULES={
+ quiet:[['carnegie','Open with something that matters to them this quarter, not with your own update.','ابدأ بما يهمهم في هذا الربع، لا بأخبارك أنت.'],['voss','Use a "no" question: "Would it be a bad idea to…?" People reply faster when saying no feels safe.','استخدم سؤالًا جوابه «لا»، مثل: «هل تمانع أن…؟». يرد الناس أسرع حين يكون الرفض مريحًا.'],['challenger','Bring one insight from similar clients as the reason to reconnect.','اجعل ملاحظة من عملاء مشابهين سببًا لإعادة التواصل.']],
+ renew:[['mcdonald','Show value delivered against last year\'s plan, then present next year\'s account plan.','اعرض القيمة المحققة مقارنة بخطة العام الماضي، ثم قدّم خطة الحساب للعام القادم.'],['rackham','Ask what happens if the service stops or changes: let them say the impact.','اسأل عما يحدث إذا توقفت الخدمة أو تغيرت، ودعهم يذكرون الأثر بأنفسهم.'],['heiman','Confirm who signs the renewal and meet them before the date.','تأكد ممن يوقّع التجديد، واجتمع به قبل الموعد.']],
+ dm:[['heiman','Map the economic buyer and find a coach who can guide you to them.','حدد صاحب القرار المالي، وابحث عن مرشد يوصلك إليه.'],['meddic','Your weakest points are the economic buyer and the champion. Fix those first.','أضعف نقطتين لديك هما صاحب القرار والداعم الداخلي، فابدأ بهما.'],['challenger','Give your supporter a short business case they can sell internally.','زوّد الداعم لديهم بملخص قيمة موجز يستطيع عرضه داخليًا.']],
+ sat:[['voss','Start by listing their frustrations yourself, before they do.','ابدأ أنت بذكر ما أزعجهم قبل أن يذكروه.'],['carnegie','Admit the mistake quickly and clearly. It lowers the tension.','اعترف بالخطأ بسرعة ووضوح، فذلك يخفف التوتر.'],['mcdonald','Fix the service before talking about growth or renewal.','عالج الخدمة قبل الحديث عن النمو أو التجديد.']],
+ value:[['challenger','Reframe the talk around the cost of doing nothing.','حوّل الحديث إلى تكلفة عدم اتخاذ أي إجراء.'],['voss','Label the concern: "It sounds like budget is tight." Then ask how they would like to solve it.','سمِّ التحفظ، مثل: «يبدو أن الميزانية محدودة»، ثم اسأل كيف يفضلون معالجة ذلك.'],['rackham','Ask an implication question to put a number on the problem.','اطرح سؤال أثر يحدد حجم المشكلة برقم.']],
+ close:[['tracy','Ask for the decision and agree a signing date.','اطلب القرار واتفق على موعد التوقيع.'],['meddic','Check the paper process: legal, procurement and who signs.','تحقق من مسار الإجراءات: الشؤون القانونية، والمشتريات، ومن يوقّع.'],['voss','Ask: "What could stop us from moving ahead this week?"','اسأل: «ما الذي قد يمنعنا من البدء هذا الأسبوع؟»']],
+ grow:[['mcdonald','Grow your share of their spend with a joint plan for the next quarter.','وسّع حصتك من إنفاقهم بخطة مشتركة للربع القادم.'],['challenger','Bring a commercial insight they have not thought about yet.','قدّم فكرة تجارية لم يفكروا فيها بعد.'],['carnegie','Thank your supporter in front of their management, and ask for one referral.','اشكر الداعم أمام إدارته، واطلب منه ترشيحًا واحدًا.']]
+};
+function council(a){const k=nextAction(a).k;return (RULES[k]||RULES.grow).map(r=>({e:EXP[r[0]],adv:AR()?r[2]:r[1]}))}
+const SPINQ={
+ quiet:[['S','What has changed in your priorities since we last spoke?','ما الذي تغير في أولوياتكم منذ آخر حديث بيننا؟'],['P','Where is the service not meeting what you need right now?','أين لا تلبي الخدمة احتياجكم حاليًا؟'],['N','If we fixed that, what would it make easier for your team?','لو عالجنا ذلك، ما الذي سيصبح أسهل على فريقكم؟']],
+ renew:[['P','What almost made you look at other options this year?','ما الذي كاد يدفعكم إلى البحث عن بدائل هذا العام؟'],['I','What would it cost your team if the service stopped for a week?','كم سيكلف فريقكم توقف الخدمة أسبوعًا؟'],['N','What would make next year a clear win for you?','ما الذي يجعل العام القادم مكسبًا واضحًا لكم؟']],
+ dm:[['S','Who else is involved when a decision like this is made?','من يشارك أيضًا في اتخاذ قرار كهذا؟'],['I','What happens if management does not see the results clearly?','ماذا يحدث إن لم تطّلع الإدارة على النتائج بوضوح؟'],['N','How would it help you if we presented the impact to them together?','كيف سيفيدك أن نعرض الأثر عليهم معًا؟']],
+ sat:[['P','Which issue is hurting your team the most right now?','ما المشكلة الأكثر تأثيرًا في فريقكم حاليًا؟'],['I','How is that affecting your own clients or targets?','كيف يؤثر ذلك في عملائكم أو مستهدفاتكم؟'],['N','If we solved it within 30 days, what would that change for you?','لو عالجناها خلال ٣٠ يومًا، ما الذي سيتغير لديكم؟']],
+ value:[['P','What is the current issue costing you each month?','كم تكلفكم المشكلة الحالية شهريًا؟'],['I','What happens to that cost if nothing changes this year?','ماذا يحدث لهذه التكلفة إن لم يتغير شيء هذا العام؟'],['N','How much would it be worth to remove that cost?','ما قيمة التخلص من هذه التكلفة بالنسبة إليكم؟']],
+ close:[['S','What steps are left on your side before we can start?','ما الخطوات المتبقية من جانبكم قبل أن نبدأ؟'],['I','What happens if the start moves to next quarter?','ماذا يحدث إذا تأجل البدء إلى الربع القادم؟'],['N','What would a smooth first month look like for you?','كيف يبدو الشهر الأول الناجح من وجهة نظرك؟']],
+ grow:[['S','What are your biggest goals for next quarter?','ما أبرز أهدافكم للربع القادم؟'],['P','Where do you still see gaps we have not covered?','أين ترى فجوات لم نغطها بعد؟'],['N','If we covered one of them, what would the impact be?','لو غطينا إحداها، فما الأثر المتوقع؟']]
+};
+function spinQs(a){const k=nextAction(a).k;return (SPINQ[k]||SPINQ.grow).map(q=>({t:q[0],q:AR()?q[2]:q[1]}))}
+const MDK=['m','e','d1','d2','p','i','c','co'];
+const MDL={en:{m:'Metrics',e:'Economic buyer',d1:'Decision criteria',d2:'Decision process',p:'Paper process',i:'Identified pain',c:'Champion',co:'Competition'},ar:{m:'الأرقام',e:'صاحب القرار المالي',d1:'معايير القرار',d2:'آلية القرار',p:'مسار الإجراءات',i:'المشكلة',c:'الداعم الداخلي',co:'المنافسة'}};
+const MDQ={en:{m:'Do you know the numbers the client wants to achieve (savings, growth, time)?',e:'Have you met the person who approves the budget?',d1:'Do you know what they will choose on (price, quality, speed…)?',d2:'Do you know the decision steps and their dates?',p:'Do you know who signs, and how long legal and procurement take?',i:'Has the client told you a clear problem that bothers them?',c:'Is there someone inside who defends you when you are not in the room?',co:'Do you know who else is competing for this deal?'},
+ ar:{m:'هل تعرف الأرقام التي يريد العميل تحقيقها (توفير، نمو، وقت)؟',e:'هل قابلت الشخص الذي يعتمد الميزانية؟',d1:'هل تعرف على أي أساس سيختارون (السعر، الجودة، السرعة…)؟',d2:'هل تعرف خطوات اتخاذ القرار ومواعيدها؟',p:'هل تعرف من يوقّع، وكم تستغرق الشؤون القانونية والمشتريات؟',i:'هل ذكر لك العميل مشكلة واضحة تزعجه؟',c:'هل لديك شخص في جهة العميل يدافع عنك في غيابك؟',co:'هل تعرف من ينافسك على هذه الصفقة؟'}};
+function medVerdict(s){return s>=75?t('medReady'):s>=50?t('medGap'):t('medEarly')}
+function medScore(a){const m=a.med||{};const ks=MDK.filter(k=>m[k]!=null&&m[k]!=='');if(!ks.length)return null;return Math.round(MDK.reduce((s,k)=>s+(Number(m[k])||0),0)/16*100)}
+function matrixSVG(L,big){
+  const W=640,H=big?380:340,pad=46,x=v=>pad+(W-pad-14)*v/100,y=v=>H-pad-(H-pad-14)*v/100;
+  const mx=Math.max(1,...L.map(a=>Number(a.value)||0));
+  const qz=[['star',0,50],['strategic',50,50],['streamline',0,0],['status',50,0]];
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" direction="ltr" style="direction:ltr;max-height:${H}px;font-family:Segoe UI,Tahoma,sans-serif;font-size:11px" role="img">`;
+  qz.forEach(([k,qx,qy])=>{s+=`<rect x="${x(qx)}" y="${y(qy+50)}" width="${x(50)-x(0)}" height="${y(0)-y(50)}" fill="var(--${QD[k].c==='mut'?'panel2':QD[k].c+'Soft'})" opacity=".55"/><text x="${x(qx)+8}" y="${y(qy+50)+16}" fill="var(--muted)" font-weight="700">${esc(qName(k))}</text>`});
+  s+=`<line x1="${x(50)}" y1="${y(0)}" x2="${x(50)}" y2="${y(100)}" stroke="var(--line)"/><line x1="${x(0)}" y1="${y(50)}" x2="${x(100)}" y2="${y(50)}" stroke="var(--line)"/>`;
+  s+=`<text x="${(x(0)+x(100))/2}" y="${H-10}" text-anchor="middle" fill="var(--muted)">${esc(t('axX'))} →</text><text x="14" y="${(y(0)+y(100))/2}" text-anchor="middle" fill="var(--muted)" transform="rotate(-90 14 ${(y(0)+y(100))/2})">${esc(t('axY'))} →</text>`;
+  L.forEach(a=>{const h=health(a),at=attractiveness(a),r=4+12*Math.sqrt((Number(a.value)||0)/mx);s+=`<circle data-a="open" data-id="${a.id}" cx="${x(h)}" cy="${y(at)}" r="${r.toFixed(1)}" fill="var(--${band(h)})" fill-opacity=".72" stroke="var(--panel)" stroke-width="1.5" style="cursor:pointer"><title>${esc(a.name)} · ${t('health')} ${h} · ${money(a.value)}</title></circle>`});
+  return s+'</svg>';
+}
+
+/* ================= DEMO ================= */
+function waDate(n,h,m){const d=new Date(today0().getTime()-n*DAY);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()+', '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')}
+function demo(){
+  const c1=[[6,9,5,'Saad','Good morning Fahad, sharing the updated proposal for the 30 extra positions.'],[6,11,40,'Fahad','Thanks. Our main problem last quarter was the delay in filling vacancies, it cost us SLA penalties.'],[4,10,10,'Fahad','I shared it with our CEO. He wants the saving per year.'],[2,8,30,'Fahad','Adding Khalid from procurement.'],[2,8,45,'Khalid','Can you share the payment terms and the warranty on replacement staff?'],[2,9,2,'Saad','Payment terms are 30 days, every replacement within 5 working days.'],[1,13,15,'Fahad','Management asked for a revised version. When can you start if we sign this month?'],[1,13,20,'Saad','Onboarding starts 2 weeks after signing.'],[0,9,0,'Fahad','Great. Who will follow up with us after go live?']].map(x=>waDate(x[0],x[1],x[2])+' - '+x[3]+': '+x[4]).join('\n');
+  const c2=[[40,10,0,'Saad','Hi Saleh, sending the renewal proposal for next year.'],[37,16,0,'Saleh','Thanks, the budget is tight this year, we are also comparing with another vendor.'],[30,9,0,'Saad','Understood. Can we meet to review the value delivered?'],[22,9,30,'Saad','Following up on my last message.'],[15,10,0,'Saad','Any update on the renewal?']].map(x=>waDate(x[0],x[1],x[2])+' - '+x[3]+': '+x[4]).join('\n');
+  const A=(name,contact,sector,value,ren,lc,q1,q2,q3,sla,pay,gr,conv,people)=>{const a={id:uid(),name,contact,sector,value,renewal:offs(ren),lastContact:offs(-lc),q1,q2,q3,sla,payDays:pay,growth:gr,convRaw:conv||'',conv:null,people:(people||[]).map(p=>({id:uid(),name:p[0],title:p[1],role:p[2],sent:p[3],last:offs(-p[4])}))};if(conv)a.conv=analyzeConv(conv,'Saad');return a};
+  DB.accounts=[
+    A('Najd Facilities Co.','Fahad','Facilities',73000000,95,0,'yes','yes','yes',97,35,12,c1,[['Fahad A.','Operations Director','sup','pos',0],['CEO office','CEO','dm','neu',12],['Khalid M.','Procurement','inf','neu',2]]),
+    A('Rimal Retail Group','Saleh','Retail',18500000,60,15,'no','no','unsure',88,62,-8,c2,[['Saleh H.','CFO','dm','neu',37],['Reem K.','IT Manager','block','neg',20]]),
+    A('Masar Transport','Hind','Logistics',9200000,210,9,'yes','yes','yes',95,40,18,'',[['Turki B.','GM','dm','pos',9],['Hind R.','Fleet Manager','sup','pos',3]]),
+    A('Sahab Cloud Services','Lama','Technology',12400000,110,18,'unsure','yes','yes',91,48,4,'',[['Yazeed N.','CTO','dm','neu',33],['Lama G.','Delivery Head','sup','pos',18]]),
+    A('Qimam Construction','Waleed','Construction',27000000,40,33,'no','no','no',84,75,-15,'',[['Chairman office','Chairman','dm','neg',90],['Waleed S.','Projects Director','user','neu',33]]),
+    A('Nakheel Foods','Sara','FMCG',6800000,300,6,'yes','yes','yes',98,30,22,'',[['Sara M.','Commercial Director','dm','pos',6],['Faisal J.','Category Manager','sup','pos',4]])
+  ];DB.accounts[0].med={m:2,e:1,d1:2,d2:1,p:1,i:2,c:2,co:1};DB.accounts[1].med={m:0,e:0,d1:1,d2:0,p:0,i:1,c:0,co:0};save();
+}
+
+/* ================= VIEWS ================= */
+let VIEW={name:'home'};
+const V=()=>document.getElementById('view');
+function render(){
+  QCACHE=null;
+  document.querySelectorAll('[data-t]').forEach(e=>e.textContent=t(e.dataset.t));
+  document.documentElement.lang=LANG;document.documentElement.dir=AR()?'rtl':'ltr';
+  document.getElementById('langBtn').textContent=AR()?'English':'العربية';document.title=t('app');
+  if(VIEW.name==='acc'&&DB.accounts.find(a=>a.id===VIEW.id))V().innerHTML=accView(DB.accounts.find(a=>a.id===VIEW.id));
+  else if(VIEW.name==='how')V().innerHTML=howView();
+  else{VIEW={name:'home'};V().innerHTML=homeView()}
+  bind();
+}
+function portfolio(){
+  const L=DB.accounts;const val=L.reduce((s,a)=>s+(Number(a.value)||0),0);
+  const risk=L.filter(a=>health(a)<60||renewRisk(a)==='high');
+  return {n:L.length,val,riskVal:risk.reduce((s,a)=>s+(Number(a.value)||0),0),avg:L.length?Math.round(L.reduce((s,a)=>s+health(a),0)/L.length):0};
+}
+function homeView(){
+  const head=`<div class="row between"><div><h1>${t('homeT')}</h1><p class="sub">${t('homeS')}</p></div><div class="row"><button class="btn" data-a="import">&#8679; ${t('imp')}</button><button class="btn sm ghost" data-a="tpl">${t('tpl')}</button><button class="btn pri" data-a="add">${t('add')}</button></div></div>`;
+  if(!DB.accounts.length)return head+`<div class="card empty">${t('empty')}<br><br><button class="btn pri" data-a="import">&#8679; ${t('imp')}</button> <button class="btn" data-a="add">${t('add')}</button> <button class="btn" data-a="demo">${t('demo')}</button></div>`;
+  const p=portfolio();const L=[...DB.accounts].sort((a,b)=>health(a)-health(b));const need=L.filter(needsToday);
+  return head+`
+  <div class="grid g4" style="margin-bottom:16px">
+    <div class="card kpi"><div class="l">${t('kAcc')}</div><div class="v">${p.n}</div></div>
+    <div class="card kpi"><div class="l">${t('kVal')}</div><div class="v">${money(p.val)}</div></div>
+    <div class="card kpi"><div class="l">${t('kRisk')}</div><div class="v" style="color:var(--bad)">${money(p.riskVal)}</div></div>
+    <div class="card kpi"><div class="l">${t('kHealth')}</div><div class="v" style="color:var(--${band(p.avg)})">${p.avg}</div></div>
+  </div>
+  <div class="card" style="margin-bottom:16px"><div class="row between"><h2 style="margin:0">${t('matrixT')}</h2><div class="row small">${['strategic','star','status','streamline'].map(k=>`<span class="pill p-${QD[k].c}">${esc(qName(k))}: ${L.filter(a=>quadrant(a)===k).length}</span>`).join('')}</div></div><p class="small muted" style="margin:6px 0 4px">${t('matrixS')}</p>${matrixSVG(L)}</div>
+  ${need.length?`<div class="today"><b>${t('needToday')}: ${need.length}</b> · ${need.slice(0,8).map(a=>`<a href="#" data-a="open" data-id="${a.id}">${esc(a.name)}</a>`).join(' · ')}${need.length>8?` <a href="#" data-a="fneed">+${need.length-8}</a>`:''}</div>`:`<div class="today" style="background:var(--goodSoft)">${t('allGood')}</div>`}
+  <div class="row" style="margin-bottom:12px"><input id="q" placeholder="${esc(t('search'))}" value="${esc(HF.q)}" style="flex:1;min-width:180px"><span class="seg" id="fseg">${[['all',t('fAll')+' ('+L.length+')'],['need',t('fNeed')+' ('+need.length+')'],['risk',t('atRisk')+' ('+L.filter(a=>health(a)<50).length+')']].map(x=>`<button type="button" data-f="${x[0]}" class="${HF.f===x[0]?'on':''}">${x[1]}</button>`).join('')}</span></div>
+  <div id="grid">${gridHTML(L)}</div>`;
+}
+let HF={q:'',f:'all',n:60};
+function gridHTML(L){
+  const q=HF.q.trim().toLowerCase();
+  let list=L.filter(a=>HF.f==='need'?needsToday(a):HF.f==='risk'?health(a)<50:true);
+  if(q)list=list.filter(a=>[a.name,a.contact,a.sector,...Object.values(a.extra||{})].join(' ').toLowerCase().includes(q));
+  if(!list.length)return `<div class="card empty">-</div>`;
+  return `<div class="grid g3">${list.slice(0,HF.n).map(card).join('')}</div>${list.length>HF.n?`<div style="text-align:center;margin-top:14px"><button class="btn" data-a="more">${t('showMore')} (${list.length-HF.n})</button></div>`:''}`;
+}
+function refreshGrid(){const g=document.getElementById('grid');if(!g)return;g.innerHTML=gridHTML([...DB.accounts].sort((a,b)=>health(a)-health(b)));bind()}
+function card(a){
+  const h=health(a),du=until(a.renewal),r=reasons(a)[0];
+  return `<div class="card acc ${band(h)}" data-a="open" data-id="${a.id}">
+    <div class="row between" style="flex-wrap:nowrap"><div style="min-width:0"><div class="nm">${esc(a.name)}</div><div class="meta">${esc(a.sector||'')}${a.sector?' · ':''}${money(a.value)}</div></div>${scoreEl(h)}</div>
+    <div class="row" style="margin-top:8px"><span class="pill p-${band(h)}">${statusTxt(h)}</span><span class="pill p-${QD[quadrant(a)].c}">${esc(qName(quadrant(a)))}</span>${du!=null&&du>=0?`<span class="pill p-mut">${t('renewIn')} ${DN(du)}</span>`:''}</div>
+    ${r?`<div class="why"><span style="color:var(--${r.k==='good'?'good':r.k==='warn'?'warn':'bad'})">●</span> ${esc(r.txt)}</div>`:''}
+    <div class="why muted">→ ${esc(nextAction(a).title)}</div>
+    ${a.next&&a.next.date&&apptDate(a.next)>=today0()?`<div class="why"><span class="pill p-good">📅 ${esc(typeName(a.next.type))}: ${esc(apptLabel(a.next))}</span></div>`:''}
+  </div>`;
+}
+function facRow(lbl,v){return `<div class="fac"><span>${lbl}</span><div class="bar"><span style="width:${Math.round(v)}%;background:var(--${band(v)})"></span></div><b>${Math.round(v)}</b></div>`}
+function accView(a){
+  const h=health(a),h90=health(a,90),f=factors(a),rs=reasons(a),na=nextAction(a),du=until(a.renewal);
+  const roleL={dm:'rDM',sup:'rSup',inf:'rInf',user:'rUser',block:'rBlock'};const sc={pos:'var(--good)',neu:'var(--warn)',neg:'var(--bad)'};
+  const fl={eng:'fEng',rel:'fRel',conv:'fConv',sla:'fSla',pay:'fPay',growth:'fGrowth'};
+  return `<div class="row between"><button class="btn ghost" data-a="home">${t('back')}</button><div class="row"><button class="btn sm" data-a="edit" data-id="${a.id}">${t('edit')}</button><button class="btn sm danger" data-a="del" data-id="${a.id}">${t('del')}</button></div></div>
+  <div class="row between" style="margin:10px 0 16px;flex-wrap:nowrap"><div style="min-width:0"><h1>${esc(a.name)}</h1><div class="muted small">${esc(a.sector||'')}${a.sector?' · ':''}${money(a.value)} · ${t('renewIn')} ${du!=null?DN(du):'-'} (${fdate(a.renewal)})${a.contact?' · '+esc(a.contact):''}</div></div>${scoreEl(h,true)}</div>
+  <div class="grid g3">
+    <div class="card"><h2>${t('where')}</h2><span class="pill p-${band(h)}">${statusTxt(h)}</span><p style="margin:10px 0 0">${t('st_'+band(h))}</p>
+      <h2 style="margin-top:18px">${t('tm')}</h2><div class="tm"><div style="text-align:center">${scoreEl(h)}<div class="small muted">${t('today')}</div></div><span class="muted" style="font-size:1.4rem">${AR()?'←':'→'}</span><div style="text-align:center">${scoreEl(h90)}<div class="small muted">${t('in90')}</div></div><b style="color:var(--${h90<h?'bad':'good'})">${h90-h>0?'+':''}${h90-h}</b></div></div>
+    <div class="card"><h2>${t('why')}</h2><ul class="list">${rs.slice(0,5).map(r=>`<li><span class="ic ${r.k}">${r.k==='good'?'✓':'!'}</span><span>${esc(r.txt)}</span></li>`).join('')||'<li class="muted">-</li>'}</ul></div>
+    <div class="card"><h2>${t('todo')}</h2><div class="action">→ ${esc(na.title)}</div>
+      ${a.next&&a.next.date&&apptDate(a.next)>=today0()?`<div class="small" style="margin-top:8px"><b>${t('nextAppt')}:</b> ${esc(typeName(a.next.type))}${AR()?'، ':', '}${esc(apptLabel(a.next))}</div>`:''}
+      <button class="btn pri" style="width:100%;margin-top:10px" data-a="sched" data-id="${a.id}">📅 ${t('schBtn')}</button><h2 style="margin-top:14px">${t('msgReady')}</h2><div class="msg" id="msgTxt">${esc(na.msg)}</div><div style="margin-top:8px"><button class="btn sm" data-a="copy">${t('copy')}</button></div></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h2>${t('councilT')}</h2><p class="small muted" style="margin-top:0">${t('councilS')}</p>
+    <div class="grid g3">${council(a).map(c=>`<div style="background:var(--panel2);border-radius:12px;padding:14px"><div style="font-weight:700">${esc(c.e.n)}</div><div class="small muted" style="font-style:italic">${esc(c.e.b)}</div><p class="small" style="margin:8px 0;color:var(--muted)">${esc(AR()?c.e.ar:c.e.en)}</p><div style="font-weight:600">→ ${esc(c.adv)}</div></div>`).join('')}</div></div>
+  <div class="grid g3" style="margin-top:14px">
+    <div class="card"><h2>${t('quadT')}</h2>${(()=>{const q=quadrant(a);return `<span class="pill p-${QD[q].c}">${esc(qName(q))}</span><p style="margin:10px 0 6px">${esc(qAdv(q))}</p><p class="small muted" style="margin:0">Malcolm McDonald · ${t('axY')}: ${attractiveness(a)} · ${t('axX')}: ${h}</p>`})()}</div>
+    <div class="card"><h2>${t('spinT')}</h2><ul class="list">${spinQs(a).map(q=>`<li><span class="ic info">${q.t}</span><span>${esc(q.q)}</span></li>`).join('')}</ul><p class="small muted" style="margin:6px 0 0">${t('spinS')}</p></div>
+    <div class="card"><div class="row between" style="flex-wrap:nowrap"><div><h2 style="margin:0">${t('medT')}</h2><p class="small muted" style="margin:4px 0 0">${t('medS')}</p></div>${medScore(a)!=null?`<div style="text-align:center">${scoreEl(medScore(a))}<div class="small" style="font-weight:600;color:var(--${band(medScore(a))})">${medVerdict(medScore(a))}</div></div>`:''}</div>
+      ${(()=>{const m=a.med||{};return MDK.map((k,i)=>{const v=m[k];const set=v!=null&&v!=='';return `<div style="padding:10px 0;border-bottom:1px solid var(--line)"><div class="small" style="margin-bottom:6px"><b>${i+1}.</b> ${esc(MDQ[LANG][k])} <span class="tag" style="font-size:.7rem;background:var(--panel2);border-radius:5px;padding:0 5px;color:var(--muted)">${MDL[LANG][k]}</span></div><span class="seg" style="display:flex" data-med="${k}" data-id="${a.id}">${[[0,'mNo','bad'],[1,'mPart','warn'],[2,'mYes','good']].map(([val,l,c])=>`<button type="button" data-v="${val}" style="flex:1;${set&&Number(v)===val?`background:var(--${c});color:#fff`:''}">${t(l)}</button>`).join('')}</span></div>`}).join('')})()}
+      <p class="small muted" style="margin:8px 0 0">${t('medHow')}</p></div>
+  </div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h2>${t('factors')}</h2>${Object.keys(f).map(k=>facRow(t(fl[k]),f[k])).join('')}${a.extra&&Object.keys(a.extra).length?`<h2 style="margin-top:16px">${t('extra')}</h2>${Object.entries(a.extra).map(([k,v])=>`<div class="person"><span class="muted small" style="min-width:120px">${esc(k)}</span><span>${esc(v)}</span></div>`).join('')}`:''}</div>
+    <div class="card"><div class="row between"><h2 style="margin:0">${t('people')}</h2><button class="btn sm" data-a="addP" data-id="${a.id}">${t('addP')}</button></div>
+      ${(a.people||[]).length?(a.people||[]).map(p=>`<div class="person"><span class="dot" style="background:${sc[p.sent]||'var(--muted)'}"></span><div style="flex:1;min-width:0"><b>${esc(p.name)}</b> <span class="muted small">${esc(p.title||'')}</span><br><span class="small muted">${t(roleL[p.role]||'rInf')} · ${t('ago',{d:DN(since(p.last))})}</span>${since(p.last)>30?` <span class="pill p-bad">${t('quiet')}</span>`:''}</div><button class="btn sm ghost" data-a="delP" data-acc="${a.id}" data-id="${p.id}">×</button></div>`).join(''):`<p class="muted small">-</p>`}
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px"><h2>${t('conv')}</h2><p class="muted small" style="margin-top:0">${t('convHint')}</p>
+    <textarea id="convTxt">${esc(a.convRaw||'')}</textarea>
+    <div class="row" style="margin-top:8px"><label class="btn sm" style="margin:0">${t('upload')}<input type="file" id="convFile" accept=".txt" hidden></label>
+    <span id="meWrap">${a.conv&&a.conv.parts&&a.conv.parts.length>1?`<select id="meSel" style="width:auto">${a.conv.parts.map(p=>`<option ${p===a.conv.me?'selected':''}>${esc(p)}</option>`).join('')}</select> <span class="small muted">${t('whoYou')}</span>`:''}</span>
+    <button class="btn pri sm" data-a="conv" data-id="${a.id}">${t('analyze')}</button></div></div>`;
+}
+function howView(){
+  const en=`<h1>How Key Account Health Dashboard works</h1><p class="sub">Simple rules you can trust, built on well-known sales frameworks.</p>
+  <div class="grid g2"><div class="card"><h2>Account health (0-100)</h2><ul class="list">
+  <li><span class="ic info">1</span><span><b>Contact (30%)</b>: days since the last real contact. 7 days or less is full marks, 60 days is zero.</span></li>
+  <li><span class="ic info">2</span><span><b>Relationship (30%)</b>: decision maker, a supporter inside, and client satisfaction. Based on Strategic Selling (Miller Heiman) buying roles.</span></li>
+  <li><span class="ic info">3</span><span><b>Conversation (20%)</b>: closing and risk signals in the latest conversation, reply speed and unanswered follow-ups.</span></li>
+  <li><span class="ic info">4</span><span><b>Optional</b>: SLA, payments and growth, if you add them.</span></li></ul>
+  <p class="small muted">70+ is healthy, 50-69 needs attention, below 50 is at risk. The 90-day view shows the score if nobody touches the account.</p></div>
+  <div class="card"><h2>Privacy and export</h2><ul class="list">
+  <li><span class="ic good">✓</span><span>No server, no account, no tracking, no external files. Everything stays in this browser.</span></li>
+  <li><span class="ic good">✓</span><span>Use Backup to keep a copy and Restore to bring it back. Clearing browser data deletes your accounts.</span></li>
+  <li><span class="ic good">✓</span><span>Export creates an Excel workbook with clean tables (ready for Power BI) and a PowerPoint deck for your manager or executive.</span></li>
+  <li><span class="ic warn">!</span><span>Signals are detected with transparent rules in Arabic and English, not with AI, so your conversations never leave your device.</span></li></ul></div></div>`;
+  const ar=`<h1>طريقة عمل الأداة</h1><p class="sub">قواعد واضحة يمكنك الوثوق بها، مبنية على منهجيات مبيعات معروفة.</p>
+  <div class="grid g2"><div class="card"><h2>صحة الحساب (٠-١٠٠)</h2><ul class="list">
+  <li><span class="ic info">١</span><span><b>التواصل (٣٠٪)</b>: عدد الأيام منذ آخر تواصل فعلي. سبعة أيام أو أقل تعني الدرجة الكاملة، وستون يومًا تعني الصفر.</span></li>
+  <li><span class="ic info">٢</span><span><b>العلاقة (٣٠٪)</b>: التواصل مع صاحب القرار، ووجود داعم داخل جهة العميل، ورضا العميل. مبنية على أدوار الشراء عند ميلر وهايمن.</span></li>
+  <li><span class="ic info">٣</span><span><b>المحادثة (٢٠٪)</b>: إشارات الإقفال والخطر في آخر محادثة، وسرعة الرد، والمتابعات التي لم يُرد عليها.</span></li>
+  <li><span class="ic info">٤</span><span><b>اختياري</b>: الالتزام بـ SLA والسداد والنمو، إذا أضفتها.</span></li></ul>
+  <p class="small muted">٧٠ فأكثر: جيد، ومن ٥٠ إلى ٦٩: يحتاج إلى انتباه، وأقل من ٥٠: في خطر. وتعرض شاشة «بعد ٩٠ يومًا» الدرجة المتوقعة إذا لم يتواصل أحد مع الحساب.</p></div>
+  <div class="card"><h2>الخصوصية والتصدير</h2><ul class="list">
+  <li><span class="ic good">✓</span><span>بلا خادم، وبلا حساب، وبلا تتبع، وبلا ملفات خارجية. كل شيء يبقى في متصفحك.</span></li>
+  <li><span class="ic good">✓</span><span>زر «نسخة احتياطية» يحفظ نسخة لديك، وزر «استرجاع» يعيدها. مسح بيانات المتصفح يحذف حساباتك.</span></li>
+  <li><span class="ic good">✓</span><span>ينتج التصدير ملف Excel بجداول مرتبة جاهزة لـ Power BI، وعرض PowerPoint لمديرك أو للإدارة التنفيذية.</span></li>
+  <li><span class="ic warn">!</span><span>تُكتشف الإشارات بقواعد واضحة بالعربية والإنجليزية، لا بالذكاء الاصطناعي، حتى لا تغادر محادثاتك جهازك.</span></li></ul></div></div>`;
+  const fw=AR()?[
+   ['Malcolm McDonald','Key Account Management','خريطة المحفظة: يقع كل حساب في أحد أربعة مواقع بحسب جاذبيته (القيمة والنمو) وقوة موقعك فيه (الصحة)، ولكل موقع طريقة لاستثمار وقتك.'],
+   ['Neil Rackham','SPIN Selling','أسئلة الوضع والمشكلة والأثر وقيمة الحل، وتتغير بحسب حالة الحساب.'],
+   ['Dunkel & Napoli','MEDDIC / MEDDPICC','تأهيل الصفقة بثماني نقاط اختيارية، مع نسبة جاهزية.'],
+   ['Miller & Heiman','Strategic Selling','أدوار الأشخاص لدى العميل، ويدخل سؤالا صاحب القرار والداعم الداخلي في حساب الدرجة.'],
+   ['Chris Voss','Never Split the Difference','الرسائل الجاهزة: تسمية الشعور، والأسئلة المفتوحة، والأسئلة التي جوابها «لا».'],
+   ['Dixon & Adamson','The Challenger Sale','رسائل ونصائح تبدأ بفكرة جديدة للعميل وبتكلفة عدم التحرك.'],
+   ['Dale Carnegie','How to Win Friends and Influence People','نصائح العلاقة: اهتمامات العميل أولًا، والاعتراف بالخطأ بسرعة.'],
+   ['Brian Tracy','The Psychology of Selling','طلب الالتزام التالي بوضوح وبموعد محدد.']]:[
+   ['Malcolm McDonald','Key Account Management','Portfolio map: each account sits in one of 4 positions by attractiveness (value and growth) and your position (health), each with how to invest your time.'],
+   ['Neil Rackham','SPIN Selling','Situation, problem, implication and need-payoff questions that change with the account\'s situation.'],
+   ['Dunkel & Napoli','MEDDIC / MEDDPICC','Optional 8-point deal qualification with a readiness score.'],
+   ['Miller & Heiman','Strategic Selling','Buying roles of the people at the client; the decision maker and internal supporter questions feed the score.'],
+   ['Chris Voss','Never Split the Difference','Ready messages: labeling, open "how/what" questions and no-oriented questions.'],
+   ['Dixon & Adamson','The Challenger Sale','Messages and advice that open with a new insight and the cost of doing nothing.'],
+   ['Dale Carnegie','How to Win Friends and Influence People','Relationship advice: their interests first, admit mistakes quickly.'],
+   ['Brian Tracy','The Psychology of Selling','Ask clearly for the next commitment, with a date.']];
+  const fwCard=`<div class="card" style="margin-top:14px"><h2>${AR()?'الطرق المطبقة في الأداة':'Frameworks used in the tool'}</h2><ul class="list">${fw.map(x=>`<li><span class="ic info">✓</span><span><b>${x[0]}</b> · <i>${x[1]}</i><br><span class="small">${x[2]}</span></span></li>`).join('')}</ul><p class="small muted">${AR()?'المبادئ ملخصة بأسلوبنا من الكتب المعروفة، ولا تربط الأداة أي علاقة رسمية بمؤلفيها.':'Principles are summarized in our own words from the well-known books. The tool is not affiliated with their authors.'}</p></div>`;
+  return `<button class="btn ghost" data-a="home">${t('back')}</button>`+(AR()?ar:en)+fwCard;
+}
+
+/* ================= FORMS ================= */
+function modal(h){document.getElementById('box').innerHTML=h;document.getElementById('modal').classList.add('on')}
+function closeM(){document.getElementById('modal').classList.remove('on')}
+function toast(s){const e=document.getElementById('toast');e.textContent=s;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>e.style.display='none',2600)}
+const gv=id=>{const e=document.getElementById(id);return e?e.value:''};
+const segQ=(id,lab,val)=>`<div class="q"><span>${lab}</span><span class="seg" data-q="${id}">${['yes','no','unsure'].map(v=>`<button type="button" data-v="${v}" class="${(val||'unsure')===v?'on':''}">${t(v)}</button>`).join('')}</span></div>`;
+function accForm(a){
+  const isNew=!a;a=a||{name:'',contact:'',sector:'',value:'',renewal:offs(180),lastContact:offs(0),q1:'unsure',q2:'unsure',q3:'unsure',sla:'',payDays:'',growth:'',convRaw:'',people:[]};
+  const I=(id,l,v,ty='text')=>`<div><label class="f" for="${id}">${l}</label><input id="${id}" type="${ty}" value="${esc(v==null?'':v)}"></div>`;
+  modal(`<h2>${isNew?t('add').replace('+ ',''):t('edit')}</h2>
+  <div class="f2">${I('fName',t('fName'),a.name)}${I('fContact',t('fContact'),a.contact)}${I('fEmail',t('fEmail'),a.email||'','email')}${I('fValue',t('fValue'),a.value,'number')}${I('fRenew',t('fRenew'),a.renewal,'date')}${I('fLast',t('fLast'),a.lastContact,'date')}${I('fSector',t('fSector'),a.sector)}</div>
+  <div style="margin-top:12px">${segQ('q1',t('q1'),a.q1)}${segQ('q2',t('q2'),a.q2)}${segQ('q3',t('q3'),a.q3)}</div>
+  ${isNew?`<label class="f">${t('conv')}</label><textarea id="fConv" placeholder="${esc(t('convHint'))}" style="min-height:100px"></textarea>`:''}
+  <details><summary>${t('more')}</summary><div class="f2">${I('fSla',t('fSla'),a.sla,'number')}${I('fPay',t('fPay'),a.payDays,'number')}${I('fGrowth',t('fGrowth'),a.growth,'number')}</div></details>
+  <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn" data-m="close">${t('cancel')}</button><button class="btn pri" id="saveAcc">${t('save')}</button></div>`);
+  document.querySelectorAll('.seg').forEach(s=>s.querySelectorAll('button').forEach(b=>b.onclick=()=>{s.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on')}));
+  document.querySelector('[data-m=close]').onclick=closeM;
+  document.getElementById('saveAcc').onclick=()=>{
+    if(!gv('fName').trim()){toast(t('needName'));return}
+    const sv=q=>{const b=document.querySelector(`.seg[data-q="${q}"] button.on`);return b?b.dataset.v:'unsure'};
+    Object.assign(a,{name:gv('fName').trim(),contact:gv('fContact').trim(),email:gv('fEmail').trim(),value:num(gv('fValue'))||0,renewal:gv('fRenew'),lastContact:gv('fLast'),sector:gv('fSector').trim(),q1:sv('q1'),q2:sv('q2'),q3:sv('q3'),sla:num(gv('fSla')),payDays:num(gv('fPay')),growth:num(gv('fGrowth'))});
+    if(isNew&&DB.accounts.length>=MAXACC){toast(t('limit'));return}
+    if(isNew){const c=gv('fConv');if(c.trim()){a.convRaw=c;a.conv=analyzeConv(c)}a.id=uid();DB.accounts.push(a)}
+    save();closeM();VIEW={name:'acc',id:a.id};render()};
+}
+function personForm(a){
+  const I=(id,l,v,ty='text')=>`<div><label class="f" for="${id}">${l}</label><input id="${id}" type="${ty}" value="${esc(v)}"></div>`;
+  const S=(id,l,o,v)=>`<div><label class="f" for="${id}">${l}</label><select id="${id}">${o.map(x=>`<option value="${x[0]}" ${x[0]===v?'selected':''}>${x[1]}</option>`).join('')}</select></div>`;
+  modal(`<h2>${t('addP').replace('+ ','')} · ${esc(a.name)}</h2><div class="f2">${I('pName',t('pName'),'')}${I('pTitle',t('pTitle'),'')}${S('pRole',t('pRole'),[['dm',t('rDM')],['sup',t('rSup')],['inf',t('rInf')],['user',t('rUser')],['block',t('rBlock')]],'sup')}${S('pSent',t('pSent'),[['pos',t('sPos')],['neu',t('sNeu')],['neg',t('sNeg')]],'neu')}${I('pLast',t('pLast'),offs(0),'date')}</div>
+  <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn" data-m="close">${t('cancel')}</button><button class="btn pri" id="saveP">${t('save')}</button></div>`);
+  document.querySelector('[data-m=close]').onclick=closeM;
+  document.getElementById('saveP').onclick=()=>{if(!gv('pName').trim())return;a.people=a.people||[];a.people.push({id:uid(),name:gv('pName').trim(),title:gv('pTitle').trim(),role:gv('pRole'),sent:gv('pSent'),last:gv('pLast')});save();closeM();render()};
+}
+function exportForm(){
+  if(!DB.accounts.length){toast(t('nothing'));return}
+  modal(`<h2>${t('exportT')}</h2><p class="muted">${t('exportS')}</p><label class="f" for="xName">${t('yourName')}</label><input id="xName" value="${esc(DB.prefs.owner||'')}">
+  <p class="small muted" style="margin-top:12px">${t('pbi')}</p>
+  <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn" data-m="close">${t('cancel')}</button><button class="btn pri" id="doExport">&#8681; ${t('download')}</button></div>`);
+  document.querySelector('[data-m=close]').onclick=closeM;
+  document.getElementById('doExport').onclick=()=>{DB.prefs.owner=gv('xName').trim();save();const st=iso(new Date());const base=(AR()?'مراجعة-الحسابات-':'Account-Review-')+st;
+    dl(buildXlsx(),base+'.xlsx','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    setTimeout(()=>dl(buildPptx(),base+'.pptx','application/vnd.openxmlformats-officedocument.presentationml.presentation'),700);
+    closeM();toast(t('exported'))};
+}
+function dl(bytes,name,type){const b=new Blob([bytes],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}
+
+/* ================= ZIP (store) ================= */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+function zip(files){
+  const enc=new TextEncoder();const parts=[],cd=[];let off=0;
+  const d=new Date();const dt=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate(),tm=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1);
+  for(const f of files){
+    const name=enc.encode(f.name),data=typeof f.data==='string'?enc.encode(f.data):f.data,crc=crc32(data);
+    const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(8,0,true);h.setUint16(10,tm,true);h.setUint16(12,dt,true);h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,name.length,true);h.setUint16(28,0,true);
+    parts.push(new Uint8Array(h.buffer),name,data);
+    const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(10,0,true);c.setUint16(12,tm,true);c.setUint16(14,dt,true);c.setUint32(16,crc,true);c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);c.setUint16(28,name.length,true);c.setUint16(30,0,true);c.setUint16(32,0,true);c.setUint16(34,0,true);c.setUint16(36,0,true);c.setUint32(38,0,true);c.setUint32(42,off,true);
+    cd.push(new Uint8Array(c.buffer),name);off+=30+name.length+data.length;
+  }
+  const cdSize=cd.reduce((s,x)=>s+x.length,0);const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cdSize,true);e.setUint32(16,off,true);
+  const all=[...parts,...cd,new Uint8Array(e.buffer)];const out=new Uint8Array(all.reduce((s,x)=>s+x.length,0));let p=0;for(const x of all){out.set(x,p);p+=x.length}return out;
+}
+const X=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'');
+
+/* ================= EXCEL ================= */
+function colL(i){let s='';i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s}
+function xlSerial(s){return s?Math.round((pd(s)-new Date(1899,11,30))/DAY):null}
+function sheetXml(rows,widths,hasTable,rtl){
+  const body=rows.map((r,ri)=>`<row r="${ri+1}">`+r.map((c,ci)=>{const ref=colL(ci)+(ri+1);if(c==null||c==='')return '';if(typeof c==='object'&&c.d!=null){const v=xlSerial(c.d);return v==null?'':`<c r="${ref}" s="2"><v>${v}</v></c>`}if(typeof c==='object'&&c.n!=null)return `<c r="${ref}" s="3"><v>${c.n}</v></c>`;if(typeof c==='number')return `<c r="${ref}"><v>${c}</v></c>`;return `<c r="${ref}" t="inlineStr"${ri===0&&!hasTable?' s="1"':''}><is><t xml:space="preserve">${X(c)}</t></is></c>`}).join('')+`</row>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetViews><sheetView workbookViewId="0"${rtl?' rightToLeft="1"':''}><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${body}</sheetData>${hasTable?'<tableParts count="1"><tablePart r:id="rId1"/></tableParts>':''}</worksheet>`;
+}
+function tableXml(id,name,cols,nrows){const ref=`A1:${colL(cols.length-1)}${nrows}`;return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="${id}" name="${name}" displayName="${name}" ref="${ref}" totalsRowShown="0"><autoFilter ref="${ref}"/><tableColumns count="${cols.length}">${cols.map((c,i)=>`<tableColumn id="${i+1}" name="${X(c)}"/>`).join('')}</tableColumns><tableStyleInfo name="TableStyleMedium2" showFirstColumn="0" showLastColumn="0" showRowStripes="1" showColumnStripes="0"/></table>`}
+function buildXlsx(){
+  const L=[...DB.accounts].sort((a,b)=>health(a)-health(b));const yn=v=>t(v||'unsure');const rk={high:AR()?'عالي':'High',medium:AR()?'متوسط':'Medium',low:AR()?'منخفض':'Low'};
+  const H=AR()?{acc:'الحساب',sec:'القطاع',contact:'جهة التواصل',val:'القيمة السنوية',ren:'تاريخ التجديد',dren:'أيام للتجديد',hl:'الصحة',h90:'الصحة بعد 90 يومًا',st:'الوضع',rr:'خطر التجديد',lc:'آخر تواصل',dlc:'أيام من آخر تواصل',dm:'صاحب القرار',sup:'داعم داخلي',sat:'رضا العميل',reason:'السبب الرئيسي',act:'الخطوة التالية',name:'الاسم',title:'المسمى الوظيفي',role:'الدور',att:'الموقف',quiet:'انقطع التواصل',type:'النوع',sig:'الإشارة',metric:'المؤشر',value:'القيمة'}:
+    {acc:'Account',sec:'Sector',contact:'Contact',val:'AnnualValue',ren:'RenewalDate',dren:'DaysToRenewal',hl:'Health',h90:'HealthIn90Days',st:'Status',rr:'RenewalRisk',lc:'LastContact',dlc:'DaysSinceContact',dm:'DecisionMakerEngaged',sup:'InternalSupporter',sat:'ClientSatisfied',reason:'MainReason',act:'NextAction',name:'Name',title:'Title',role:'Role',att:'Attitude',quiet:'GoneQuiet',type:'Type',sig:'Signal',metric:'Metric',value:'Value'};
+  QCACHE=null;H.quad=AR()?'موقعه في المحفظة':'PortfolioQuadrant';H.attr=AR()?'جاذبية الحساب':'Attractiveness';H.med=AR()?'جاهزية MEDDPICC':'MEDDPICCReadiness';H.exp=AR()?'نصيحة الخبير':'ExpertAdvice';
+  const baseCols=[H.acc,H.sec,H.contact,H.val,H.ren,H.dren,H.hl,H.h90,H.st,H.rr,H.lc,H.dlc,H.dm,H.sup,H.sat,H.reason,H.act,H.quad,H.attr,H.med,H.exp];
+  const exKeys=[];L.forEach(a=>Object.keys(a.extra||{}).forEach(k=>{if(!exKeys.includes(k))exKeys.push(k)}));
+  const used=new Set(baseCols.map(c=>c.toLowerCase()));const exCols=exKeys.map(k=>{let n=String(k).trim()||'Extra',i=2;const b=n;while(used.has(n.toLowerCase()))n=b+' '+(i++);used.add(n.toLowerCase());return n});
+  const accCols=[...baseCols,...exCols];
+  const accRows=[accCols,...L.map(a=>{const r=reasons(a).find(x=>x.k!=='good');const lt=lastTouch(a);return [a.name,a.sector||'',a.contact||'',{n:Number(a.value)||0},{d:a.renewal},until(a.renewal),health(a),health(a,90),statusTxt(health(a)),rk[renewRisk(a)],{d:lt},lt?since(lt):'',yn(a.q1),yn(a.q2),yn(a.q3),r?r.txt:'',nextAction(a).title,qName(quadrant(a)),attractiveness(a),medScore(a)==null?'':medScore(a),(()=>{const c=council(a)[0];return c.e.n+': '+c.adv})(),...exKeys.map(k=>(a.extra||{})[k]==null?'':String(a.extra[k]))]})];
+  const roleL={dm:'rDM',sup:'rSup',inf:'rInf',user:'rUser',block:'rBlock'},sL={pos:'sPos',neu:'sNeu',neg:'sNeg'};
+  const pCols=[H.acc,H.name,H.title,H.role,H.att,H.lc,H.dlc,H.quiet];
+  const pRows=[pCols];L.forEach(a=>(a.people||[]).forEach(p=>pRows.push([a.name,p.name,p.title||'',t(roleL[p.role]||'rInf'),t(sL[p.sent]||'sNeu'),{d:p.last},since(p.last),since(p.last)>30?t('yes'):t('no')])));
+  const sCols=[H.acc,H.type,H.sig];const sRows=[sCols];L.forEach(a=>reasons(a).forEach(r=>sRows.push([a.name,r.k==='good'?(AR()?'إيجابي':'Positive'):(AR()?'خطر':'Risk'),r.txt])));
+  const p=portfolio();const sum=[[H.metric,H.value],[t('kAcc'),p.n],[t('kVal'),{n:p.val}],[t('kRisk'),{n:p.riskVal}],[t('kHealth'),p.avg],[t('healthy'),L.filter(a=>health(a)>=70).length],[t('watch'),L.filter(a=>health(a)>=50&&health(a)<70).length],[t('atRisk'),L.filter(a=>health(a)<50).length],[t('x_by'),DB.prefs.owner||''],[AR()?'تاريخ التقرير':'Report date',{d:iso(new Date())}]];
+  const sheets=[{n:AR()?'الملخص':'Summary',x:sheetXml(sum,[28,22],false,AR())},{n:AR()?'الحسابات':'Accounts',x:sheetXml(accRows,[26,14,14,16,14,12,9,14,11,12,14,12,14,14,12,40,36],true,AR()),tbl:'tblAccounts',cols:accCols,rows:accRows.length},{n:AR()?'الأشخاص':'People',x:sheetXml(pRows,[26,20,22,16,12,14,12,10],pRows.length>1,AR()),tbl:pRows.length>1?'tblPeople':null,cols:pCols,rows:pRows.length},{n:AR()?'الإشارات':'Signals',x:sheetXml(sRows,[26,12,50],sRows.length>1,AR()),tbl:sRows.length>1?'tblSignals':null,cols:sCols,rows:sRows.length}];
+  const files=[];let tid=0;const ctT=[];
+  sheets.forEach((s,i)=>{files.push({name:`xl/worksheets/sheet${i+1}.xml`,data:s.x});if(s.tbl){tid++;files.push({name:`xl/tables/table${tid}.xml`,data:tableXml(tid,s.tbl,s.cols,s.rows)});files.push({name:`xl/worksheets/_rels/sheet${i+1}.xml.rels`,data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/table" Target="../tables/table${tid}.xml"/></Relationships>`});ctT.push(tid)}});
+  files.unshift({name:'[Content_Types].xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((s,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}${ctT.map(n=>`<Override PartName="/xl/tables/table${n}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/>`).join('')}</Types>`},
+   {name:'_rels/.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+   {name:'xl/workbook.xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((s,i)=>`<sheet name="${X(s.n)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets></workbook>`},
+   {name:'xl/_rels/workbook.xml.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((s,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+   {name:'xl/styles.xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="yyyy-mm-dd"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/><family val="2"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/><family val="2"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0B6B57"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="3" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`});
+  return zip(files);
+}
+
+/* ================= POWERPOINT ================= */
+const EMU=914400;const SW=13.333,SH=7.5;
+const HEX={brand:'0B6B57',good:'1F8A4C',warn:'B7791F',bad:'C0392B',text:'16202C',muted:'5D6A79',soft:'EEF2F6',line:'DDE3EA',white:'FFFFFF',goodS:'E1F3E8',warnS:'FBF0DB',badS:'FBE4E1',brandS:'E2F2EC'};
+const bandHex=s=>s>=70?HEX.good:s>=50?HEX.warn:HEX.bad;
+function para(p){const al=p.align||(AR()?'r':'l');const rtl=AR()?' rtl="1"':'';const lang=AR()?'ar-SA':'en-US';
+  return `<a:p><a:pPr algn="${al}"${rtl}/><a:r><a:rPr lang="${lang}" sz="${Math.round((p.size||14)*100)}"${p.bold?' b="1"':''} dirty="0"><a:solidFill><a:srgbClr val="${p.color||HEX.text}"/></a:solidFill><a:latin typeface="Segoe UI"/><a:cs typeface="Segoe UI"/></a:rPr><a:t>${X(p.text)}</a:t></a:r></a:p>`}
+function shape(id,x,y,w,h,o){o=o||{};const geom=o.round?'roundRect':'rect';
+  const fill=o.fill?`<a:solidFill><a:srgbClr val="${o.fill}"/></a:solidFill>`:'<a:noFill/>';const ln=o.line?`<a:ln w="9525"><a:solidFill><a:srgbClr val="${o.line}"/></a:solidFill></a:ln>`:'<a:ln><a:noFill/></a:ln>';
+  const paras=(o.paras&&o.paras.length?o.paras:[{text:''}]).map(para).join('');
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="Shape ${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${Math.round(x*EMU)}" y="${Math.round(y*EMU)}"/><a:ext cx="${Math.max(1,Math.round(w*EMU))}" cy="${Math.max(1,Math.round(h*EMU))}"/></a:xfrm><a:prstGeom prst="${geom}"><a:avLst/></a:prstGeom>${fill}${ln}</p:spPr><p:txBody><a:bodyPr wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" anchor="${o.anchor||'t'}"/><a:lstStyle/>${paras}</p:txBody></p:sp>`}
+function slideXml(shapes){return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>${shapes.join('')}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`}
+function buildPptx(){
+  const L=[...DB.accounts].sort((a,b)=>health(a)-health(b));const p=portfolio();const owner=DB.prefs.owner||'';
+  const dstr=new Date().toLocaleDateString(AR()?'ar-SA-u-ca-gregory':'en-GB',{day:'numeric',month:'long',year:'numeric'});
+  const slides=[];
+  const frame=(title,sub)=>{let id=2;const s=[];const nid=()=>id++;s.push(shape(nid(),0,0,SW,0.12,{fill:HEX.brand}));s.push(shape(nid(),0.6,0.35,SW-1.2,0.7,{paras:[{text:title,size:28,bold:true}]}));if(sub)s.push(shape(nid(),0.6,1.0,SW-1.2,0.45,{paras:[{text:sub,size:14,color:HEX.muted}]}));s.push(shape(nid(),0.6,SH-0.5,SW-1.2,0.35,{paras:[{text:t('x_made'),size:10,color:HEX.muted}]}));return {s,nid}};
+  // 1 title
+  {let id=2;const s=[];s.push(shape(id++,0,0,SW,SH,{fill:HEX.brand}));s.push(shape(id++,0.9,2.3,SW-1.8,1.2,{paras:[{text:t('x_title'),size:44,bold:true,color:HEX.white}]}));s.push(shape(id++,0.9,3.5,SW-1.8,0.6,{paras:[{text:dstr,size:18,color:'D7EFE7'}]}));if(owner)s.push(shape(id++,0.9,4.1,SW-1.8,0.6,{paras:[{text:t('x_by')+': '+owner,size:18,color:HEX.white}]}));s.push(shape(id++,0.9,SH-0.8,SW-1.8,0.4,{paras:[{text:t('x_made'),size:11,color:'BFE3D7'}]}));slides.push(s)}
+  // 2 summary
+  {const {s,nid}=frame(t('x_summary'),dstr);const k=[[t('kAcc'),String(p.n),HEX.text],[t('kVal'),money(p.val),HEX.text],[t('kRisk'),money(p.riskVal),HEX.bad],[t('kHealth'),String(p.avg),bandHex(p.avg)]];
+    const kw=(SW-1.2-0.3*3)/4;k.forEach((x,i)=>{const xx=AR()?SW-0.6-kw-i*(kw+0.3):0.6+i*(kw+0.3);s.push(shape(nid(),xx,1.7,kw,1.5,{fill:HEX.soft,round:true,paras:[{text:x[0],size:13,color:HEX.muted},{text:x[1],size:30,bold:true,color:x[2]}]}))});
+    const cnt=[[t('healthy'),L.filter(a=>health(a)>=70).length,HEX.good],[t('watch'),L.filter(a=>health(a)>=50&&health(a)<70).length,HEX.warn],[t('atRisk'),L.filter(a=>health(a)<50).length,HEX.bad]];const mx=Math.max(1,...cnt.map(c=>c[1]));
+    s.push(shape(nid(),0.6,3.55,SW-1.2,0.45,{paras:[{text:t('x_health'),size:16,bold:true}]}));
+    cnt.forEach((c,i)=>{const y=4.15+i*0.8,bx=3.2,bw=(SW-0.6-bx-1.0)*c[1]/mx;s.push(shape(nid(),0.6,y,2.5,0.6,{anchor:'ctr',paras:[{text:c[0],size:15,bold:true,color:c[2],align:AR()?'r':'l'}]}));s.push(shape(nid(),bx,y+0.08,SW-0.6-bx-1.0,0.44,{fill:HEX.soft,round:true}));if(c[1])s.push(shape(nid(),bx,y+0.08,bw,0.44,{fill:c[2],round:true}));s.push(shape(nid(),SW-1.5,y,0.9,0.6,{anchor:'ctr',paras:[{text:String(c[1]),size:16,bold:true,align:'ctr'}]}))});
+    slides.push(s)}
+  // 2b McDonald portfolio matrix
+  {QCACHE=null;const {s,nid}=frame(t('matrixT'),'Malcolm McDonald');const gx=0.9,gy=1.55,gw=SW-1.8,gh=SH-2.45;const qw=gw/2,qh=gh/2;
+    const pos={star:[0,0],strategic:[1,0],streamline:[0,1],status:[1,1]};const fillQ={strategic:HEX.goodS,star:HEX.badS,status:HEX.warnS,streamline:HEX.soft};const colQ={strategic:HEX.good,star:HEX.bad,status:HEX.warn,streamline:HEX.muted};
+    Object.keys(pos).forEach(k=>{const [cx,cy]=pos[k];const xx=AR()?gx+(1-cx)*qw:gx+cx*qw;const list=L.filter(a=>quadrant(a)===k);const names=list.slice(0,4).map(a=>a.name).join('، ');
+      s.push(shape(nid(),xx+0.05,gy+cy*qh+0.05,qw-0.1,qh-0.1,{fill:fillQ[k],round:true,paras:[{text:qName(k)+' ('+list.length+')',size:18,bold:true,color:colQ[k]},{text:qAdv(k),size:12,color:HEX.text},{text:names+(list.length>4?' …':''),size:11,color:HEX.muted}]}))});
+    s.push(shape(nid(),gx,gy+gh+0.02,gw,0.32,{paras:[{text:(AR()?'← ':'')+t('axX')+(AR()?'':' →'),size:11,color:HEX.muted,align:'ctr'}]}));
+    s.push(shape(nid(),0.15,gy,0.7,gh,{anchor:'ctr',paras:[{text:'↑',size:16,color:HEX.muted,align:'ctr'}]}));
+    slides.push(s)}
+  // 3 health per account
+  {const {s,nid}=frame(t('x_health'),'');const rows=L.slice(0,9);const top=1.25,rh=Math.min(0.6,(SH-top-0.7)/Math.max(1,rows.length));
+    rows.forEach((a,i)=>{const h=health(a),y=top+i*rh,bx=4.4,full=SW-0.6-bx-2.6;s.push(shape(nid(),0.6,y,3.7,rh,{anchor:'ctr',paras:[{text:a.name,size:13,bold:true}]}));s.push(shape(nid(),bx,y+rh*.22,full,rh*.56,{fill:HEX.soft,round:true}));s.push(shape(nid(),bx,y+rh*.22,full*h/100,rh*.56,{fill:bandHex(h),round:true}));s.push(shape(nid(),bx+full+0.1,y,0.7,rh,{anchor:'ctr',paras:[{text:String(h),size:14,bold:true,color:bandHex(h),align:'ctr'}]}));const du=until(a.renewal);s.push(shape(nid(),bx+full+0.8,y,1.8,rh,{anchor:'ctr',paras:[{text:du!=null&&du>=0?t('renewIn')+' '+DN(du):'',size:11,color:HEX.muted}]}))});
+    slides.push(s)}
+  // 4 accounts that need action
+  {const {s,nid}=frame(t('x_risk'),'');const rows=L.filter(needsToday).slice(0,5);const list=rows.length?rows:L.slice(0,3);
+    const cw=[3.2,1.4,3.9,3.6];const cx=[];let acc=0.6;cw.forEach(w=>{cx.push(acc);acc+=w});const order=AR()?[3,2,1,0]:[0,1,2,3];const posX=i=>{if(!AR())return cx[i];let x=SW-0.6;for(let j=0;j<=i;j++)x-=cw[j];return x};
+    const hdr=[t('x_account'),t('x_status'),t('x_reason'),t('x_action')];hdr.forEach((hh,i)=>s.push(shape(nid(),posX(i),1.3,cw[i],0.5,{fill:HEX.brand,anchor:'ctr',paras:[{text:hh,size:13,bold:true,color:HEX.white}]})));
+    const rh=Math.min(0.95,(SH-1.9-0.7)/list.length);
+    list.forEach((a,r)=>{const y=1.85+r*rh,h=health(a),rs=reasons(a).find(x=>x.k!=='good');const bg=r%2?HEX.white:HEX.soft;
+      const cells=[[a.name+'\n'+money(a.value),HEX.text,true],[statusTxt(h)+' ('+h+')',bandHex(h),true],[rs?rs.txt:'-',HEX.text,false],[nextAction(a).title,HEX.text,false]];
+      cells.forEach((c,i)=>s.push(shape(nid(),posX(i),y,cw[i],rh-0.05,{fill:bg,anchor:'ctr',paras:c[0].split('\n').map((tx,j)=>({text:tx,size:j?11:12,bold:c[2]&&!j,color:j?HEX.muted:c[1]}))})))});
+    slides.push(s)}
+  // 5-7 deep dive on top risk accounts
+  L.filter(a=>health(a)<70).slice(0,3).forEach(a=>{const {s,nid}=frame(a.name,(a.sector?a.sector+' | ':'')+money(a.value)+' | '+t('renewIn')+' '+DN(until(a.renewal)));const h=health(a),h90=health(a,90);
+    const lx=AR()?SW-0.6-3.6:0.6,rx=AR()?0.6:4.6;
+    s.push(shape(nid(),lx,1.7,3.6,2.2,{fill:HEX.soft,round:true,anchor:'ctr',paras:[{text:t('today'),size:13,color:HEX.muted,align:'ctr'},{text:String(h),size:54,bold:true,color:bandHex(h),align:'ctr'},{text:statusTxt(h),size:14,bold:true,color:bandHex(h),align:'ctr'}]}));
+    s.push(shape(nid(),lx,4.1,3.6,1.9,{fill:HEX.soft,round:true,anchor:'ctr',paras:[{text:t('in90'),size:13,color:HEX.muted,align:'ctr'},{text:String(h90),size:40,bold:true,color:bandHex(h90),align:'ctr'},{text:t('tm'),size:10,color:HEX.muted,align:'ctr'}]}));
+    s.push(shape(nid(),rx,1.7,SW-1.2-4.0,0.45,{paras:[{text:t('why'),size:16,bold:true}]}));
+    const rs=reasons(a).slice(0,4);s.push(shape(nid(),rx,2.15,SW-1.2-4.0,2.2,{paras:rs.map(r=>({text:(r.k==='good'?'✓  ':'●  ')+r.txt,size:14,color:r.k==='good'?HEX.good:r.k==='warn'?HEX.warn:HEX.bad}))}));
+    const cx0=council(a)[0];s.push(shape(nid(),rx,4.3,SW-1.2-4.0,1.9,{fill:HEX.brandS,round:true,anchor:'ctr',paras:[{text:t('todo'),size:12,color:HEX.muted},{text:nextAction(a).title,size:19,bold:true,color:HEX.brand},{text:cx0.e.n+': '+cx0.adv,size:12,color:HEX.text}]}));
+    slides.push(s)});
+  // last: 30-day plan
+  {const {s,nid}=frame(t('x_plan'),'');const items=L.filter(a=>health(a)<70||needsToday(a)).slice(0,6);const list=items.length?items:L.slice(0,4);
+    list.forEach((a,i)=>{const y=1.45+i*0.85;const h=health(a);s.push(shape(nid(),AR()?SW-1.3:0.6,y,0.7,0.65,{fill:bandHex(h),round:true,anchor:'ctr',paras:[{text:String(i+1),size:18,bold:true,color:HEX.white,align:'ctr'}]}));s.push(shape(nid(),AR()?0.6:1.5,y,SW-2.1,0.65,{anchor:'ctr',paras:[{text:a.name+': '+nextAction(a).title,size:16,bold:true}]}))});
+    slides.push(s)}
+  // package
+  const P='http://schemas.openxmlformats.org/presentationml/2006/main',A='http://schemas.openxmlformats.org/drawingml/2006/main',R='http://schemas.openxmlformats.org/officeDocument/2006/relationships',PR='http://schemas.openxmlformats.org/package/2006/relationships';
+  const emptyTree='<p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:spTree>';
+  const hdr='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  const clr=(n,v)=>`<a:${n}><a:srgbClr val="${v}"/></a:${n}>`;
+  const theme=`${hdr}<a:theme xmlns:a="${A}" name="Pulse"><a:themeElements><a:clrScheme name="Pulse">${clr('dk1','16202C')}${clr('lt1','FFFFFF')}${clr('dk2','1F2A37')}${clr('lt2','EEF2F6')}${clr('accent1','0B6B57')}${clr('accent2','1F8A4C')}${clr('accent3','B7791F')}${clr('accent4','C0392B')}${clr('accent5','2B6CB0')}${clr('accent6','6B46C1')}${clr('hlink','0B6B57')}${clr('folHlink','5D6A79')}</a:clrScheme><a:fontScheme name="Pulse"><a:majorFont><a:latin typeface="Segoe UI"/><a:ea typeface=""/><a:cs typeface="Segoe UI"/></a:majorFont><a:minorFont><a:latin typeface="Segoe UI"/><a:ea typeface=""/><a:cs typeface="Segoe UI"/></a:minorFont></a:fontScheme><a:fmtScheme name="Pulse"><a:fillStyleLst>${'<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>'.repeat(3)}</a:fillStyleLst><a:lnStyleLst>${'<a:ln w="9525"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln>'.repeat(3)}</a:lnStyleLst><a:effectStyleLst>${'<a:effectStyle><a:effectLst/></a:effectStyle>'.repeat(3)}</a:effectStyleLst><a:bgFillStyleLst>${'<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>'.repeat(3)}</a:bgFillStyleLst></a:fmtScheme></a:themeElements><a:objectDefaults/><a:extraClrSchemeLst/></a:theme>`;
+  const master=`${hdr}<p:sldMaster xmlns:a="${A}" xmlns:r="${R}" xmlns:p="${P}"><p:cSld><p:bg><p:bgPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>${emptyTree}</p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/><p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst><p:txStyles><p:titleStyle><a:lvl1pPr><a:defRPr sz="3200"/></a:lvl1pPr></p:titleStyle><p:bodyStyle><a:lvl1pPr><a:defRPr sz="1800"/></a:lvl1pPr></p:bodyStyle><p:otherStyle><a:lvl1pPr><a:defRPr sz="1800"/></a:lvl1pPr></p:otherStyle></p:txStyles></p:sldMaster>`;
+  const layout=`${hdr}<p:sldLayout xmlns:a="${A}" xmlns:r="${R}" xmlns:p="${P}" type="blank" preserve="1"><p:cSld name="Blank">${emptyTree}</p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>`;
+  const rel=(arr)=>`${hdr}<Relationships xmlns="${PR}">${arr.map(r=>`<Relationship Id="${r[0]}" Type="${R}/${r[1]}" Target="${r[2]}"/>`).join('')}</Relationships>`;
+  const files=[];
+  files.push({name:'[Content_Types].xml',data:`${hdr}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/><Override PartName="/ppt/presProps.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presProps+xml"/>${slides.map((_,i)=>`<Override PartName="/ppt/slides/slide${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`).join('')}</Types>`});
+  files.push({name:'_rels/.rels',data:`${hdr}<Relationships xmlns="${PR}"><Relationship Id="rId1" Type="${R}/officeDocument" Target="ppt/presentation.xml"/></Relationships>`});
+  files.push({name:'ppt/presentation.xml',data:`${hdr}<p:presentation xmlns:a="${A}" xmlns:r="${R}" xmlns:p="${P}" saveSubsetFonts="1"${AR()?' rtl="1"':''}><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst><p:sldIdLst>${slides.map((_,i)=>`<p:sldId id="${256+i}" r:id="rId${i+10}"/>`).join('')}</p:sldIdLst><p:sldSz cx="${Math.round(SW*EMU)}" cy="${Math.round(SH*EMU)}"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>`});
+  files.push({name:'ppt/_rels/presentation.xml.rels',data:rel([['rId1','slideMaster','slideMasters/slideMaster1.xml'],['rId2','theme','theme/theme1.xml'],['rId3','presProps','presProps.xml'],...slides.map((_,i)=>['rId'+(i+10),'slide','slides/slide'+(i+1)+'.xml'])])});
+  files.push({name:'ppt/presProps.xml',data:`${hdr}<p:presentationPr xmlns:a="${A}" xmlns:r="${R}" xmlns:p="${P}"/>`});
+  files.push({name:'ppt/theme/theme1.xml',data:theme});
+  files.push({name:'ppt/slideMasters/slideMaster1.xml',data:master});
+  files.push({name:'ppt/slideMasters/_rels/slideMaster1.xml.rels',data:rel([['rId1','slideLayout','../slideLayouts/slideLayout1.xml'],['rId2','theme','../theme/theme1.xml']])});
+  files.push({name:'ppt/slideLayouts/slideLayout1.xml',data:layout});
+  files.push({name:'ppt/slideLayouts/_rels/slideLayout1.xml.rels',data:rel([['rId1','slideMaster','../slideMasters/slideMaster1.xml']])});
+  slides.forEach((s,i)=>{files.push({name:`ppt/slides/slide${i+1}.xml`,data:slideXml(s)});files.push({name:`ppt/slides/_rels/slide${i+1}.xml.rels`,data:rel([['rId1','slideLayout','../slideLayouts/slideLayout1.xml']])})});
+  return zip(files);
+}
+
+/* ================= IMPORT (Excel / CSV, offline) ================= */
+async function inflateRaw(u8){const ds=new DecompressionStream('deflate-raw');const s=new Blob([u8]).stream().pipeThrough(ds);return new Uint8Array(await new Response(s).arrayBuffer())}
+async function unzipAll(u8){
+  const dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);let eocd=-1;
+  for(let i=u8.length-22;i>=Math.max(0,u8.length-66000);i--){if(dv.getUint32(i,true)===0x06054b50){eocd=i;break}}
+  if(eocd<0)throw new Error('zip');
+  const n=dv.getUint16(eocd+10,true);let p=dv.getUint32(eocd+16,true);const out={};const dec=new TextDecoder();
+  for(let k=0;k<n;k++){
+    if(dv.getUint32(p,true)!==0x02014b50)throw new Error('cd');
+    const method=dv.getUint16(p+10,true),csize=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
+    const name=dec.decode(u8.subarray(p+46,p+46+nl));p+=46+nl+el+cl;
+    const lnl=dv.getUint16(lo+26,true),lel=dv.getUint16(lo+28,true);const data=u8.subarray(lo+30+lnl+lel,lo+30+lnl+lel+csize);
+    out[name]={method,data};
+  }
+  return {names:Object.keys(out),get:async nm=>{const e=out[nm];if(!e)return null;const raw=e.method===8?await inflateRaw(e.data):e.data;return new TextDecoder().decode(raw)}};
+}
+const tags=(doc,n)=>Array.from(doc.getElementsByTagName('*')).filter(e=>e.localName===n);
+async function parseXlsx(u8){
+  const z=await unzipAll(u8);const P=s=>new DOMParser().parseFromString(s,'application/xml');
+  const ss=[];const sst=await z.get('xl/sharedStrings.xml');if(sst){tags(P(sst),'si').forEach(si=>ss.push(tags(si,'t').map(x=>x.textContent).join('')))}
+  const wb=P(await z.get('xl/workbook.xml'));const relsTxt=await z.get('xl/_rels/workbook.xml.rels');const rels={};if(relsTxt)tags(P(relsTxt),'Relationship').forEach(r=>rels[r.getAttribute('Id')]=r.getAttribute('Target'));
+  const sheets=[];
+  for(const s of tags(wb,'sheet')){
+    const rid=s.getAttribute('r:id')||s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');let tgt=rels[rid]||'';
+    tgt=tgt.startsWith('/')?tgt.slice(1):'xl/'+tgt.replace(/^\.\//,'');const xml=await z.get(tgt);if(!xml)continue;
+    const rows=[];tags(P(xml),'row').forEach(r=>{const row=[];tags(r,'c').forEach(c=>{const ref=c.getAttribute('r')||'';const col=ref.replace(/\d+/g,'');let ci=0;for(const ch of col)ci=ci*26+(ch.charCodeAt(0)-64);ci--;if(ci<0)ci=row.length;const ty=c.getAttribute('t');const v=tags(c,'v')[0];let val='';
+      if(ty==='s')val=ss[+(v?v.textContent:0)]||'';else if(ty==='inlineStr')val=tags(c,'t').map(x=>x.textContent).join('');else if(ty==='b')val=v&&v.textContent==='1'?'yes':'no';else val=v?v.textContent:'';
+      if(ty!=='s'&&ty!=='inlineStr'&&ty!=='str'&&val!==''&&!isNaN(Number(val)))val=Number(val);row[ci]=val});rows.push(Array.from(row,x=>x==null?'':x))});
+    sheets.push({name:s.getAttribute('name'),rows});
+  }
+  return sheets;
+}
+function parseCSV(text){
+  text=text.replace(/^﻿/,'');const first=text.split('\n')[0]||'';const d=[',',';','\t'].sort((a,b)=>first.split(b).length-first.split(a).length)[0];
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++}else q=false}else f+=c}else if(c==='"')q=true;else if(c===d){row.push(f);f=''}else if(c==='\n'){row.push(f.replace(/\r$/,''));rows.push(row);row=[];f=''}else f+=c}
+  if(f||row.length){row.push(f);rows.push(row)}
+  return [{name:'CSV',rows:rows.map(r=>r.map(x=>{const s=x.trim();return s!==''&&/^-?[\d.,]+$/.test(s)&&!isNaN(Number(s.replace(/,/g,'')))&&!/^0\d/.test(s)?Number(s.replace(/,/g,'')):s}))}];
+}
+const FIELDS=['name','contact','email','sector','value','renewal','lastContact','q1','q2','q3','sla','payDays','growth'];
+const FLAB=()=>({name:t('fName'),contact:t('fContact'),email:t('fEmail'),sector:t('fSector'),value:t('fValue'),renewal:t('fRenew'),lastContact:t('fLast'),q1:t('q1'),q2:t('q2'),q3:t('q3'),sla:t('fSla'),payDays:t('fPay'),growth:t('fGrowth')});
+const SYN={
+ name:/^(account|account name|client|client name|customer|customer name|company|company name|entity|اسم الحساب|الحساب|اسم العميل|العميل|الجهة|اسم الجهة|الشركة|اسم الشركة)$/i,
+ email:/(e-?mail|mail address|البريد|الإيميل|الايميل|ايميل)/i,
+ contact:/^(contact|contact name|main contact|main contact name|contact person|primary contact|جهة التواصل|اسم جهة التواصل|الشخص|اسم الشخص.*|المسؤول لدى العميل|ضابط الاتصال)$/i,
+ sector:/^(sector|industry|segment|vertical|القطاع|النشاط|المجال|الصناعة)$/i,
+ value:/(annual value|value|arr|revenue|contract value|amount|acv|tcv|القيمة|قيمة العقد|الإيراد|الايراد|المبلغ|القيمة السنوية)/i,
+ renewal:/(renewal|expiry|expiration|end date|contract end|التجديد|تاريخ التجديد|انتهاء|تاريخ الانتهاء|نهاية العقد)/i,
+ lastContact:/(last (real )?contact|last meeting|last activity|last touch|آخر تواصل|اخر تواصل|آخر اجتماع|آخر نشاط)/i,
+ q1:/(decision maker|economic buyer|صاحب القرار)/i,
+ q2:/(support|champion|sponsor|داعم|يدعمك|البطل|راعي)/i,
+ q3:/(satisf|csat|happy|رضا|راض)/i,
+ sla:/(sla|service level|الالتزام|مستوى الخدمة)/i,
+ payDays:/(days to pay|dso|payment days|days sales outstanding|أيام السداد|ايام السداد|مدة السداد)/i,
+ growth:/(growth|yoy|change vs|النمو)/i
+};
+function guessMap(headers){const used=new Set();return headers.map(h=>{const s=String(h||'').trim();if(!s)return 'ignore';for(const f of FIELDS){if(!used.has(f)&&SYN[f].test(s)){used.add(f);return f}}return 'extra'})}
+function toDate(v){
+  if(v===''||v==null)return '';
+  if(typeof v==='number'){if(v>20000&&v<80000){const d=new Date(Date.UTC(1899,11,30)+Math.round(v)*DAY);return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0')}return ''}
+  let s=String(v).trim().replace(/[٠-٩]/g,c=>AD[c]);let m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);if(m)return iso(new Date(+m[1],+m[2]-1,+m[3]));
+  m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/);if(m){let d=+m[1],mo=+m[2],y=+m[3];if(y<100)y+=2000;if(mo>12&&d<=12){const x=d;d=mo;mo=x}return iso(new Date(y,mo-1,d))}
+  const p=Date.parse(s);return isNaN(p)?'':iso(new Date(p));
+}
+function toNum(v){if(typeof v==='number')return v;const s=String(v||'').replace(/[٠-٩]/g,c=>AD[c]).replace(/[,٬\s]|SAR|ر\.?س|ريال|%|٪/gi,'');const n=parseFloat(s);return isNaN(n)?null:n}
+function toYN(v){const s=String(v==null?'':v).trim().toLowerCase();if(/^(yes|y|true|1|نعم|ايه|إيه|اي|أي|موجود|متواصل|راضي)$/.test(s))return 'yes';if(/^(no|n|false|0|لا|غير موجود|مو راضي|غير راضي)$/.test(s))return 'no';return 'unsure'}
+let IMP=null;
+function importForm(){
+  modal(`<h2>${t('impT')}</h2><p class="muted">${t('impS')}</p><label class="btn pri" style="display:inline-block">${t('impFile')}<input type="file" id="impFile" accept=".xlsx,.csv,.txt" hidden></label> <span class="small muted" id="impMsg"></span><div id="impBody"></div>
+  <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn" data-m="close">${t('cancel')}</button></div>`);
+  document.querySelector('[data-m=close]').onclick=closeM;
+  document.getElementById('impFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;const msg=document.getElementById('impMsg');msg.textContent=f.name;
+    try{const buf=new Uint8Array(await f.arrayBuffer());let sheets;if(/\.xlsx$/i.test(f.name)||(buf[0]===0x50&&buf[1]===0x4b))sheets=await parseXlsx(buf);else sheets=parseCSV(new TextDecoder().decode(buf));
+      sheets=sheets.filter(s=>s.rows.some(r=>r.some(c=>c!=='')));if(!sheets.length){msg.textContent=t('impEmpty');return}
+      IMP={sheets,si:0};showMap()}catch(err){msg.textContent=t('impBad')}};
+}
+function showMap(){
+  const sh=IMP.sheets[IMP.si];const rows=sh.rows.filter(r=>r.some(c=>c!==''));const hi=0;const headers=rows[hi].map(h=>String(h).trim());const data=rows.slice(hi+1);
+  IMP.headers=headers;IMP.data=data;IMP.map=IMP.map&&IMP.mapFor===IMP.si?IMP.map:guessMap(headers);IMP.mapFor=IMP.si;
+  const L=FLAB();const opts=[['ignore',t('fIgnore')],...FIELDS.map(f=>[f,L[f]]),['extra',t('fExtra')]];
+  document.getElementById('impBody').innerHTML=`${IMP.sheets.length>1?`<label class="f">${t('impSheet')}</label><select id="impSheet">${IMP.sheets.map((s,i)=>`<option value="${i}" ${i===IMP.si?'selected':''}>${esc(s.name)}</option>`).join('')}</select>`:''}
+   <h2 style="margin-top:14px">${t('impMap')} <span class="pill p-mut">${t('impRows',{n:data.length})}</span></h2><p class="small muted">${t('impMapS')} ${t('impMerge')}</p>
+   <div style="max-height:46vh;overflow:auto;border:1px solid var(--line);border-radius:10px"><table style="width:100%;border-collapse:collapse;font-size:.85rem"><thead><tr style="background:var(--panel2)"><th style="padding:8px;text-align:start">${t('impCol')}</th><th style="padding:8px;text-align:start">${t('impEx')}</th><th style="padding:8px;text-align:start">${t('impField')}</th></tr></thead><tbody>
+   ${headers.map((h,i)=>`<tr style="border-top:1px solid var(--line)"><td style="padding:6px 8px"><b>${esc(h||'('+(i+1)+')')}</b></td><td style="padding:6px 8px" class="muted">${esc(String((data.find(r=>r[i]!==''&&r[i]!=null)||[])[i]==null?'':(data.find(r=>r[i]!==''&&r[i]!=null)||[])[i]).slice(0,30))}</td><td style="padding:6px 8px"><select data-col="${i}">${opts.map(o=>`<option value="${o[0]}" ${IMP.map[i]===o[0]?'selected':''}>${esc(o[1])}</option>`).join('')}</select></td></tr>`).join('')}
+   </tbody></table></div><div class="row" style="justify-content:flex-end;margin-top:12px"><span class="small muted" id="impErr"></span><button class="btn pri" id="impGo">${t('impGo')}</button></div>`;
+  const ss=document.getElementById('impSheet');if(ss)ss.onchange=()=>{IMP.si=+ss.value;IMP.map=null;showMap()};
+  document.querySelectorAll('[data-col]').forEach(s=>s.onchange=()=>{IMP.map[+s.dataset.col]=s.value});
+  document.getElementById('impGo').onclick=doImport;
+}
+function doImport(){
+  const m=IMP.map;const ni=m.indexOf('name');if(ni<0){document.getElementById('impErr').textContent=t('impNoName');return}
+  const idx=f=>m.indexOf(f);let added=0,upd=0,skip=0;const byName={};DB.accounts.forEach(a=>byName[a.name.trim().toLowerCase()]=a);
+  for(const r of IMP.data){
+    const name=String(r[ni]==null?'':r[ni]).trim();if(!name)continue;
+    let a=byName[name.toLowerCase()];const isNew=!a;
+    if(isNew){if(DB.accounts.length>=MAXACC){skip++;continue}a={id:uid(),name,contact:'',sector:'',value:0,renewal:'',lastContact:'',q1:'unsure',q2:'unsure',q3:'unsure',sla:null,payDays:null,growth:null,convRaw:'',conv:null,people:[],extra:{}}}
+    const g=f=>{const i=idx(f);return i<0?undefined:r[i]};
+    if(g('contact')!==undefined&&g('contact')!=='')a.contact=String(g('contact')).trim();
+    if(g('email')!==undefined&&g('email')!=='')a.email=String(g('email')).trim();
+    if(g('sector')!==undefined&&g('sector')!=='')a.sector=String(g('sector')).trim();
+    if(g('value')!==undefined&&toNum(g('value'))!=null)a.value=toNum(g('value'));
+    ['renewal','lastContact'].forEach(f=>{const v=g(f);if(v!==undefined&&toDate(v))a[f]=toDate(v)});
+    ['q1','q2','q3'].forEach(f=>{const v=g(f);if(v!==undefined&&v!=='')a[f]=toYN(v)});
+    ['sla','payDays','growth'].forEach(f=>{const v=g(f);if(v!==undefined&&toNum(v)!=null){let n=toNum(v);if(f!=='payDays'&&Math.abs(n)<=1&&String(v).indexOf('%')<0&&typeof v==='number'&&n!==0)n=Math.round(n*1000)/10;a[f]=n}});
+    a.extra=a.extra||{};m.forEach((f,i)=>{if(f==='extra'&&IMP.headers[i]&&r[i]!==''&&r[i]!=null){let v=r[i];if(typeof v==='number'&&/date|تاريخ/i.test(IMP.headers[i])&&toDate(v))v=toDate(v);a.extra[IMP.headers[i]]=v}});
+    if(isNew){DB.accounts.push(a);byName[name.toLowerCase()]=a;added++}else upd++;
+  }
+  save();closeM();VIEW={name:'home'};HF={q:'',f:'all',n:60};render();toast(t('impDone',{n:added,u:upd})+(skip?' '+t('impSkip',{s:skip}):''));
+}
+function buildTemplate(){
+  const L=FLAB();const hdr=[L.name,L.contact,L.sector,L.value,L.renewal,L.lastContact,L.q1,L.q2,L.q3,L.sla,L.payDays,L.growth];
+  const ex=AR()?['شركة المثال','أحمد','تجزئة',{n:1500000},{d:offs(120)},{d:offs(-10)},'نعم','نعم','لا',96,45,8]:['Example Co.','Ahmed','Retail',{n:1500000},{d:offs(120)},{d:offs(-10)},'Yes','Yes','No',96,45,8];
+  const sx=sheetXml([hdr,ex],[24,18,14,18,14,14,26,26,22,14,14,14],false,AR());
+  return zip([{name:'[Content_Types].xml',data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'},
+   {name:'_rels/.rels',data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
+   {name:'xl/workbook.xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${AR()?'الحسابات':'Accounts'}" sheetId="1" r:id="rId1"/></sheets></workbook>`},
+   {name:'xl/_rels/workbook.xml.rels',data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'},
+   {name:'xl/styles.xml',data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="yyyy-mm-dd"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/><family val="2"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/><family val="2"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0B6B57"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="3" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>'},
+   {name:'xl/worksheets/sheet1.xml',data:sx}]);
+}
+
+/* ================= EVENTS ================= */
+function bind(){
+  document.querySelectorAll('[data-a]').forEach(el=>el.onclick=e=>{
+    const a=el.dataset.a,id=el.dataset.id;e.preventDefault();e.stopPropagation();
+    const acc=DB.accounts.find(x=>x.id===id);
+    if(a==='add'){if(DB.accounts.length>=MAXACC){toast(t('limit'));return}accForm()}
+    else if(a==='import')importForm();
+    else if(a==='sched')schedForm(acc);
+    else if(a==='tpl')dl(buildTemplate(),(AR()?'قالب-الحسابات':'accounts-template')+'.xlsx','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    else if(a==='more'){HF.n+=60;refreshGrid()}
+    else if(a==='fneed'){HF.f='need';render()}
+    else if(a==='demo'){demo();render()}
+    else if(a==='open'){VIEW={name:'acc',id};render();scrollTo(0,0)}
+    else if(a==='home'){VIEW={name:'home'};render();scrollTo(0,0)}
+    else if(a==='edit')accForm(acc);
+    else if(a==='del'){if(confirm(t('confirmDel'))){DB.accounts=DB.accounts.filter(x=>x.id!==id);save();VIEW={name:'home'};render()}}
+    else if(a==='addP')personForm(acc);
+    else if(a==='delP'){const ac=DB.accounts.find(x=>x.id===el.dataset.acc);ac.people=ac.people.filter(p=>p.id!==id);save();render()}
+    else if(a==='copy'){const txt=document.getElementById('msgTxt').innerText;const done=()=>{el.textContent=t('copied')};if(navigator.clipboard)navigator.clipboard.writeText(txt).then(done,()=>{fallbackCopy(txt);done()});else{fallbackCopy(txt);done()}}
+    else if(a==='conv'){const raw=document.getElementById('convTxt').value;const me=document.getElementById('meSel')?document.getElementById('meSel').value:(acc.conv&&acc.conv.me);acc.convRaw=raw;acc.conv=raw.trim()?analyzeConv(raw,me):null;if(acc.conv&&acc.conv.lastClientDate&&(!acc.lastContact||acc.conv.lastClientDate>acc.lastContact))acc.lastContact=acc.conv.lastClientDate;save();render()}
+  });
+  document.querySelectorAll('.seg[data-med]').forEach(s=>s.querySelectorAll('button').forEach(b=>b.onclick=()=>{const ac=DB.accounts.find(x=>x.id===s.dataset.id);if(!ac)return;ac.med=ac.med||{};const v=+b.dataset.v;ac.med[s.dataset.med]=(ac.med[s.dataset.med]===v)?null:v;save();const y=scrollY;render();scrollTo(0,y)}));
+  const qi=document.getElementById('q');if(qi&&!qi._b){qi._b=1;qi.oninput=()=>{HF.q=qi.value;HF.n=60;refreshGrid()}}
+  const fs=document.getElementById('fseg');if(fs)fs.querySelectorAll('button').forEach(b=>b.onclick=()=>{HF.f=b.dataset.f;HF.n=60;fs.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));refreshGrid()});
+  const cf=document.getElementById('convFile');if(cf)cf.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{document.getElementById('convTxt').value=r.result};r.readAsText(f)};
+}
+function fallbackCopy(s){const ta=document.createElement('textarea');ta.value=s;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove()}
+document.getElementById('home').onclick=()=>{VIEW={name:'home'};render()};
+document.getElementById('howBtn').onclick=()=>{VIEW={name:'how'};render()};
+document.getElementById('exportBtn').onclick=exportForm;
+document.getElementById('langBtn').onclick=()=>{LANG=AR()?'en':'ar';DB.prefs.lang=LANG;save();render()};
+document.getElementById('themeBtn').onclick=()=>{const c=document.documentElement.getAttribute('data-theme');const dark=c?c==='dark':matchMedia('(prefers-color-scheme: dark)').matches;const n=dark?'light':'dark';document.documentElement.setAttribute('data-theme',n);DB.prefs.theme=n;save()};
+document.getElementById('demoBtn').onclick=()=>{demo();VIEW={name:'home'};render();toast(t('demoLoaded'))};
+document.getElementById('clearBtn').onclick=()=>{if(confirm(t('confirmClear'))){DB={accounts:[],prefs:{lang:LANG,seen:true}};save();VIEW={name:'home'};render()}};
+document.getElementById('backupBtn').onclick=()=>dl(new TextEncoder().encode(JSON.stringify({app:'account-pulse',v:2,data:DB},null,2)),'account-pulse-backup-'+iso(new Date())+'.json','application/json');
+document.getElementById('restoreFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);if(j.app!=='account-pulse'||!j.data||!Array.isArray(j.data.accounts))throw 0;DB=j.data;DB.prefs=DB.prefs||{};save();VIEW={name:'home'};render();toast(t('restored'))}catch(x){toast(t('badFile'))}};r.readAsText(f);e.target.value=''};
+document.getElementById('modal').onclick=e=>{if(e.target.id==='modal')closeM()};
+
+load();
+LANG=DB.prefs.lang||((navigator.language||'').startsWith('ar')?'ar':'en');
+if(DB.prefs.theme)document.documentElement.setAttribute('data-theme',DB.prefs.theme);
+if(!DB.accounts.length&&!DB.prefs.seen){demo();DB.prefs.seen=true;save()}
+render();
+</script>
+</body>
+</html>
